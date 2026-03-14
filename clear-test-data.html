@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>清除测试数据</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-md">
+    <h1 class="text-2xl font-bold text-center text-primary mb-4">清除测试数据</h1>
+    <p class="text-gray-600 mb-6 text-center">点击下方按钮将清除李四和张三的测试数据</p>
+    
+    <div class="space-y-3">
+      <button onclick="clearTestData()" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+        清除李四和张三数据
+      </button>
+      
+      <button onclick="showCurrentData()" class="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+        查看当前数据
+      </button>
+    </div>
+    
+    <div id="data-display" class="mt-4 hidden">
+      <h3 class="font-bold text-gray-700 mb-2">当前数据：</h3>
+      <div id="data-content" class="bg-gray-50 p-3 rounded-lg text-sm max-h-60 overflow-y-auto"></div>
+    </div>
+    
+    <div class="mt-4 text-center text-sm text-gray-500">
+      <p>操作完成后页面将自动刷新</p>
+    </div>
+  </div>
+
+  <script>
+    function clearTestData() {
+      try {
+        // 获取当前数据
+        let persons = JSON.parse(localStorage.getItem('yidingtong_persons') || '[]');
+        let history = JSON.parse(localStorage.getItem('yidingtong_history') || '[]');
+        
+        const originalPersonsCount = persons.length;
+        const originalHistoryCount = history.length;
+        
+        // 过滤掉李四和张三的数据
+        persons = persons.filter(p => p.name !== '李四' && p.name !== '张三');
+        history = history.filter(h => h.name !== '李四' && h.name !== '张三');
+        
+        // 保存过滤后的数据
+        localStorage.setItem('yidingtong_persons', JSON.stringify(persons));
+        localStorage.setItem('yidingtong_history', JSON.stringify(history));
+        
+        const deletedPersons = originalPersonsCount - persons.length;
+        const deletedHistory = originalHistoryCount - history.length;
+        
+        alert(`已清除测试数据！\n\n删除了 ${deletedPersons} 条人员记录\n删除了 ${deletedHistory} 条历史记录`);
+        
+        // 跳转到主页面
+        window.location.href = 'index.html';
+      } catch (error) {
+        console.error('清除数据时出错:', error);
+        alert('清除数据时出错，请重试');
+      }
+    }
+    
+    function showCurrentData() {
+      try {
+        const persons = JSON.parse(localStorage.getItem('yidingtong_persons') || '[]');
+        const history = JSON.parse(localStorage.getItem('yidingtong_history') || '[]');
+        
+        let html = '<div class="mb-3">';
+        html += '<p class="font-semibold text-primary">人员数据 (' + persons.length + '条):</p>';
+        if (persons.length === 0) {
+          html += '<p class="text-gray-500">暂无数据</p>';
+        } else {
+          persons.forEach(p => {
+            html += `<p class="text-gray-700">• ${p.name} (${p.gender === 'male' ? '男' : '女'})</p>`;
+          });
+        }
+        html += '</div>';
+        
+        html += '<div>';
+        html += '<p class="font-semibold text-primary">历史数据 (' + history.length + '条):</p>';
+        if (history.length === 0) {
+          html += '<p class="text-gray-500">暂无数据</p>';
+        } else {
+          history.forEach(h => {
+            html += `<p class="text-gray-700">• ${h.name} (${h.gender === 'male' ? '男' : '女'}) - ${h.records.length}条记录</p>`;
+          });
+        }
+        html += '</div>';
+        
+        document.getElementById('data-content').innerHTML = html;
+        document.getElementById('data-display').classList.remove('hidden');
+      } catch (error) {
+        console.error('读取数据时出错:', error);
+        alert('读取数据时出错');
+      }
+    }
+  </script>
+</body>
+</html>

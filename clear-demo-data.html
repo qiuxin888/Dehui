@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>清空演示数据</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-md">
+    <h1 class="text-2xl font-bold text-center text-primary mb-4">清空演示数据</h1>
+    <p class="text-gray-600 mb-6 text-center">点击下方按钮将清空默认的张三和李四数据</p>
+    
+    <button onclick="clearDemoData()" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+      清空演示数据
+    </button>
+    
+    <div class="mt-4 text-center text-sm text-gray-500">
+      <p>操作完成后页面将自动刷新</p>
+    </div>
+  </div>
+
+  <script>
+    function clearDemoData() {
+      // 清空本地存储中的数据
+      localStorage.removeItem('yidingtong_persons');
+      localStorage.removeItem('yidingtong_history');
+      alert('演示数据已清空！');
+      location.reload();
+    }
+  </script>
+</body>
+</html>
