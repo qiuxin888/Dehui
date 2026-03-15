@@ -1,0 +1,4503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#165DFF">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="德会量体">
+  <meta name="description" content="专业服装定制量体数据管理系统">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <title>德会时装定制 - 服装定制量体数据系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: { primary: '#165DFF', secondary: '#6B7280', light: '#F3F4F6', dark: '#1F2937' },
+        fontFamily: { sans: ['Inter','system-ui','sans-serif'] }
+      } }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      /* 卡片样式 - 统一 */
+      .input-card { @apply bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-200 mb-4; }
+      
+      /* 按钮样式 - 完全统一 */
+      .btn-primary { 
+        @apply bg-primary text-white rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center;
+        @apply h-9 px-3 text-xs font-medium;
+        min-width: 64px;
+        white-space: nowrap;
+        gap: 4px;
+      }
+      .btn-excel { 
+        @apply bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all flex items-center justify-center;
+        @apply h-9 px-3 text-xs font-medium;
+        min-width: 64px;
+        white-space: nowrap;
+        gap: 4px;
+      }
+      .btn-danger { 
+        @apply bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all flex items-center justify-center;
+        @apply h-9 px-3 text-xs font-medium;
+        min-width: 64px;
+        white-space: nowrap;
+        gap: 4px;
+      }
+      .btn-secondary { 
+        @apply bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all flex items-center justify-center;
+        @apply h-9 px-3 text-xs font-medium;
+        min-width: 64px;
+        white-space: nowrap;
+        gap: 4px;
+      }
+      
+      /* 小按钮 */
+      .btn-sm {
+        @apply h-8 px-3 text-xs;
+      }
+      
+      /* 标签样式 */
+      .body-tag { 
+        @apply px-4 py-2.5 border-2 rounded-xl cursor-pointer flex items-center gap-2 hover:bg-gray-50 transition-all justify-center;
+        @apply text-sm font-medium;
+        min-height: 44px;
+      }
+      
+      /* 标题样式 */
+      .section-title { 
+        @apply text-base md:text-lg font-bold text-primary mb-3 md:mb-4 flex items-center gap-2;
+      }
+      
+      /* 导航样式 */
+      .nav-item { 
+        @apply flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-all cursor-pointer;
+        @apply text-sm font-medium;
+        min-height: 44px;
+      }
+      .nav-item.active { @apply bg-primary/10 text-primary; }
+      
+      /* 底部安全区域 */
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      
+      /* 输入框样式 - 统一 */
+      .size-input { 
+        @apply w-full border-2 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all;
+        @apply h-11 md:h-12 px-4 text-sm md:text-base;
+      }
+      
+      .form-group { @apply mb-4; }
+      
+      .form-label { 
+        @apply block text-sm font-medium text-gray-700 mb-2;
+      }
+      
+      .form-input { 
+        @apply w-full border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none;
+        @apply h-11 md:h-12 px-4 text-sm md:text-base;
+      }
+      
+      .form-select { 
+        @apply w-full border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all bg-white appearance-none;
+        @apply h-11 md:h-12 px-4 text-sm md:text-base;
+      }
+      
+      input[type="date"].form-input { 
+        @apply h-11 md:h-12;
+      }
+      input[type="date"]::-webkit-calendar-picker-indicator { 
+        @apply opacity-60 cursor-pointer;
+      }
+      
+      /* 徽章样式 */
+      .badge { 
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
+        min-width: 44px;
+      }
+      .badge-primary { @apply bg-primary/10 text-primary; }
+      .badge-success { @apply bg-green-100 text-green-700; }
+      .badge-warning { @apply bg-yellow-100 text-yellow-700; }
+      
+      /* 动画 */
+      .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      
+      /* 统计卡片 */
+      .stat-card {
+        @apply bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-200;
+      }
+      .stat-card .stat-value {
+        @apply text-xl md:text-2xl font-bold;
+      }
+      .stat-card .stat-label {
+        @apply text-xs text-gray-500;
+      }
+      
+      /* 表格样式 */
+      .data-table {
+        @apply w-full text-sm;
+      }
+      .data-table th {
+        @apply px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap bg-gray-50;
+      }
+      .data-table td {
+        @apply px-2 md:px-4 py-3 border-b border-gray-100;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-dark min-h-screen">
+  <div class="flex h-screen overflow-hidden">
+    <!-- 侧边导航 -->
+    <aside class="w-64 bg-white border-r border-gray-200 hidden lg:block">
+      <div class="p-4 border-b border-gray-200">
+        <div class="flex items-center gap-2">
+          <i class="fa fa-scissors text-primary text-2xl"></i>
+          <h1 class="text-xl font-bold text-primary">德会时装定制</h1>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">专业量体数据管理系统</p>
+      </div>
+      <nav class="p-4 space-y-1">
+        <div class="nav-item active" data-page="dashboard">
+          <i class="fa fa-dashboard"></i>
+          <span>工作台</span>
+        </div>
+        <div class="nav-item" data-page="measurements">
+          <i class="fa fa-list-ul"></i>
+          <span>量体管理</span>
+        </div>
+        <div class="nav-item" data-page="history">
+          <i class="fa fa-history"></i>
+          <span>历史记录</span>
+        </div>
+        <div class="nav-item" data-page="analysis">
+          <i class="fa fa-line-chart"></i>
+          <span>数据分析</span>
+        </div>
+        <div class="nav-item" data-page="settings">
+          <i class="fa fa-cog"></i>
+          <span>系统设置</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 overflow-y-auto">
+      <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="flex items-center justify-between p-4">
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <input type="text" placeholder="搜索客户..." class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary" id="global-search">
+              <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <div class="p-4 md:p-6">
+        <!-- 工作台页面 -->
+        <div id="dashboard-page" class="page-content">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h1 class="text-xl md:text-2xl font-bold">工作台</h1>
+              <p class="text-gray-500 text-sm">欢迎回来，今天是 <span id="current-date"></span></p>
+            </div>
+            <button onclick="addPerson()" class="btn-primary w-full md:w-auto">
+              <i class="fa fa-plus"></i>
+              新增量体
+            </button>
+          </div>
+
+          <!-- 统计卡片 -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="stat-card">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="stat-label">今日量体</p>
+                  <p class="stat-value" id="today-count">0</p>
+                </div>
+                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <i class="fa fa-users text-primary text-lg"></i>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="stat-label">本周总量</p>
+                  <p class="stat-value" id="week-count">0</p>
+                </div>
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <i class="fa fa-calendar text-green-600 text-lg"></i>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="stat-label">待处理</p>
+                  <p class="stat-value" id="pending-count">0</p>
+                </div>
+                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <i class="fa fa-clock-o text-yellow-600 text-lg"></i>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="stat-label">完成率</p>
+                  <p class="stat-value" id="completion-rate">0%</p>
+                </div>
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <i class="fa fa-check-circle text-red-600 text-lg"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 最近量体和身形分布 -->
+          <div class="flex flex-col md:flex-row gap-6">
+            <div class="flex-1">
+              <div class="input-card">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="section-title mb-0"><i class="fa fa-clock-o text-base"></i> 最近量体</h2>
+                  <button class="btn-secondary btn-sm">查看全部</button>
+                </div>
+                <div class="overflow-x-auto -mx-4 px-4">
+                  <table class="min-w-full text-sm">
+                    <thead>
+                      <tr class="bg-gray-50">
+                        <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap">客户</th>
+                        <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap hidden sm:table-cell">身形</th>
+                        <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap">品类</th>
+                        <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap">状态</th>
+                        <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody id="recent-table">
+                      <tr>
+                        <td colspan="5" class="text-center py-4 text-gray-500">暂无数据</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 身形分布 -->
+            <div class="w-full md:w-80 flex-shrink-0">
+              <div class="input-card h-full">
+                <div class="flex items-center justify-between mb-4 flex-nowrap gap-4">
+                  <h2 class="section-title mb-0 flex-1 whitespace-nowrap"><i class="fa fa-pie-chart"></i> 身形分布</h2>
+                  <select class="form-select text-xs w-50 h-2" onchange="updateBodyTypeChart(this.value)">
+                    <option value="week">本周</option>
+                    <option value="month">本月</option>
+                    <option value="all">全部</option>
+                  </select>
+                </div>
+                <div class="h-64">
+                  <canvas id="bodyTypeChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 量体管理页面 -->
+        <div id="measurements-page" class="page-content hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+            <h1 class="text-lg md:text-2xl font-bold whitespace-nowrap">量体管理</h1>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="toggleSelectMode()" class="btn-secondary" id="select-mode-btn">
+                <i class="fa fa-check-square"></i>
+                <span>选择</span>
+              </button>
+              <button onclick="batchExportExcel()" class="btn-excel hidden" id="batch-export-btn">
+                <i class="fa fa-file-excel-o"></i>
+                <span>导出</span>
+              </button>
+              <button onclick="addPerson()" class="btn-primary">
+                <i class="fa fa-plus"></i>
+                <span>新增</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 筛选器 -->
+          <div class="input-card mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="col-span-2 md:col-span-1">
+                <label class="form-label">开始日期</label>
+                <input type="date" class="form-input" id="filter-date-start" onchange="filterPersonList()">
+              </div>
+              <div class="col-span-2 md:col-span-1">
+                <label class="form-label">结束日期</label>
+                <input type="date" class="form-input" id="filter-date-end" onchange="filterPersonList()">
+              </div>
+              <div>
+                <label class="form-label">性别</label>
+                <select class="form-select" id="filter-gender" onchange="filterPersonList()">
+                  <option value="all">全部</option>
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">状态</label>
+                <select class="form-select" id="filter-status" onchange="filterPersonList()">
+                  <option value="all">全部</option>
+                  <option value="pending">待处理</option>
+                  <option value="exported">已导出</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 人员列表 -->
+          <div class="input-card">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="section-title mb-0"><i class="fa fa-users"></i> 量体人员列表</h2>
+              <div class="text-sm text-gray-500">共 <span id="total-count">0</span> 条记录</div>
+            </div>
+            <div id="personList" class="space-y-4">
+              <div class="text-center py-8 text-gray-500">
+                <i class="fa fa-users text-4xl mb-2"></i>
+                <p>暂无量体记录</p>
+                <button onclick="addPerson()" class="btn-primary mt-4">开始量体</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 历史记录页面 -->
+        <div id="history-page" class="page-content hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+            <h1 class="text-lg md:text-2xl font-bold whitespace-nowrap">历史记录</h1>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="toggleHistorySelectMode()" class="btn-secondary" id="history-select-mode-btn">
+                <i class="fa fa-check-square"></i>
+                <span>选择</span>
+              </button>
+              <button onclick="batchExportHistoryExcel()" class="btn-excel hidden" id="history-batch-export-btn">
+                <i class="fa fa-file-excel-o"></i>
+                <span>导出</span>
+              </button>
+              <button onclick="batchDeleteHistory()" class="btn-danger hidden" id="history-batch-delete-btn">
+                <i class="fa fa-trash"></i>
+                <span>删除</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="input-card mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="relative">
+                <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"></i>
+                <input type="text" placeholder="搜索客户姓名..." class="form-input !pl-9" id="history-search" oninput="searchHistory(this.value)">
+              </div>
+              <select class="form-select" id="history-gender-filter" onchange="filterHistory(this.value)">
+                <option value="all">全部客户</option>
+                <option value="male">男客户</option>
+                <option value="female">女客户</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-card">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="section-title mb-0"><i class="fa fa-history"></i> 客户历史记录</h2>
+              <div class="text-sm text-gray-500" id="history-total-count">共 0 条记录</div>
+            </div>
+            <div id="history-list" class="space-y-4">
+              <div class="text-center py-8 text-gray-500">
+                <i class="fa fa-history text-4xl mb-2"></i>
+                <p>暂无历史记录</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 数据分析页面 -->
+        <div id="analysis-page" class="page-content hidden">
+          <div class="flex items-center justify-between mb-6">
+            <h1 class="text-xl md:text-2xl font-bold whitespace-nowrap">数据分析</h1>
+            <select class="form-select" onchange="updateAllCharts(this.value)">
+              <option value="week">本周</option>
+              <option value="month">本月</option>
+              <option value="quarter">本季度</option>
+              <option value="year">本年</option>
+            </select>
+          </div>
+
+          <!-- 图表网格 -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="input-card">
+              <h2 class="section-title"><i class="fa fa-bar-chart"></i> 量体趋势</h2>
+              <div class="h-64">
+                <canvas id="trendChart"></canvas>
+              </div>
+            </div>
+            <div class="input-card">
+              <h2 class="section-title"><i class="fa fa-pie-chart"></i> 性别分布</h2>
+              <div class="h-64">
+                <canvas id="genderChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="input-card">
+              <h2 class="section-title"><i class="fa fa-shopping-bag"></i> 品类偏好</h2>
+              <div class="h-64">
+                <canvas id="categoryChart"></canvas>
+              </div>
+            </div>
+            <div class="input-card">
+              <h2 class="section-title"><i class="fa fa-area-chart"></i> 身形分布</h2>
+              <div class="h-64">
+                <canvas id="bodyDistChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 设置页面 -->
+        <div id="settings-page" class="page-content hidden">
+          <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold">系统设置</h1>
+          </div>
+
+          <div class="input-card">
+            <h2 class="section-title"><i class="fa fa-cog"></i> 基本设置</h2>
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="form-label">店铺名称</label>
+                  <input type="text" class="form-input" value="德会时装定制定制店" id="shop-name">
+                </div>
+                <div>
+                  <label class="form-label">联系人</label>
+                  <input type="text" class="form-input" value="张师傅" id="contact-person">
+                </div>
+                <div>
+                  <label class="form-label">联系电话</label>
+                  <input type="tel" class="form-input" value="138****8888" id="contact-phone">
+                </div>
+                <div>
+                  <label class="form-label">店铺地址</label>
+                  <input type="text" class="form-input" value="北京市朝阳区定制大街123号" id="shop-address">
+                </div>
+              </div>
+              <div class="pt-4 border-t border-gray-200">
+                <button onclick="saveSettings()" class="btn-primary">
+                  <i class="fa fa-save"></i>
+                  保存设置
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-card mt-6">
+            <h2 class="section-title"><i class="fa fa-database"></i> 数据管理</h2>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p class="font-medium">数据备份</p>
+                  <p class="text-sm text-gray-500">备份所有量体数据到本地文件</p>
+                </div>
+                <button onclick="backupData()" class="btn-secondary">
+                  <i class="fa fa-download"></i>
+                  备份
+                </button>
+              </div>
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p class="font-medium">数据恢复</p>
+                  <p class="text-sm text-gray-500">从备份文件恢复量体数据</p>
+                </div>
+                <button onclick="restoreData()" class="btn-secondary">
+                  <i class="fa fa-upload"></i>
+                  恢复
+                </button>
+              </div>
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p class="font-medium text-red-600">清除所有数据</p>
+                  <p class="text-sm text-gray-500">永久删除所有量体记录（不可恢复）</p>
+                </div>
+                <button onclick="clearAllData()" class="btn-danger">
+                  <i class="fa fa-trash"></i>
+                  清除
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 人员表单区域 -->
+        <div id="personFormContainer" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end md:items-center justify-center">
+          <div class="bg-white rounded-t-2xl md:rounded-xl w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 class="text-lg font-bold text-primary">新增量体人员</h3>
+              <button onclick="closePersonForm()" class="text-gray-500 hover:text-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                <i class="fa fa-times text-xl"></i>
+              </button>
+            </div>
+            <div class="p-4 md:p-6 space-y-6" id="personFormContent">
+              <!-- 表单内容将动态生成 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 数据预览模态框 -->
+        <div id="dataPreviewModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end md:items-center justify-center">
+          <div class="bg-white rounded-t-2xl md:rounded-xl w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 class="text-lg font-bold text-primary">数据预览</h3>
+              <button onclick="closePreviewModal()" class="text-gray-500 hover:text-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                <i class="fa fa-times text-xl"></i>
+              </button>
+            </div>
+            <div class="p-4 md:p-6">
+              <div id="dataPreviewContent" class="bg-gray-50 p-4 rounded-lg text-sm whitespace-pre-line max-h-96 overflow-y-auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 历史对比模态框 -->
+        <div id="compareModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end md:items-center justify-center">
+          <div class="bg-white rounded-t-2xl md:rounded-xl w-full max-w-5xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 class="text-lg font-bold text-primary">历史数据对比</h3>
+              <button onclick="closeCompareModal()" class="text-gray-500 hover:text-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                <i class="fa fa-times text-xl"></i>
+              </button>
+            </div>
+            <div class="p-4 md:p-6">
+              <div class="mb-4">
+                <h4 class="font-medium mb-2" id="compare-name"></h4>
+                <div class="flex flex-wrap gap-2">
+                  <span class="badge badge-primary" id="compare-date1"></span>
+                  <span class="badge badge-success" id="compare-date2"></span>
+                </div>
+              </div>
+              <div class="h-64 md:h-80">
+                <canvas id="compareChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 移动端底部导航栏 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 lg:hidden">
+    <div class="flex items-center justify-around py-2">
+      <div class="bottom-nav-item active flex flex-col items-center gap-1 py-2 px-4 rounded-xl cursor-pointer transition-all" data-page="dashboard" onclick="navigateToPage('dashboard')">
+        <i class="fa fa-dashboard text-xl"></i>
+        <span class="text-xs">工作台</span>
+      </div>
+      <div class="bottom-nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl cursor-pointer transition-all" data-page="measurements" onclick="navigateToPage('measurements')">
+        <i class="fa fa-pencil-square-o text-xl"></i>
+        <span class="text-xs">量体</span>
+      </div>
+      <div class="bottom-nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl cursor-pointer transition-all" data-page="history" onclick="navigateToPage('history')">
+        <i class="fa fa-history text-xl"></i>
+        <span class="text-xs">历史</span>
+      </div>
+      <div class="bottom-nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl cursor-pointer transition-all" data-page="analysis" onclick="navigateToPage('analysis')">
+        <i class="fa fa-line-chart text-xl"></i>
+        <span class="text-xs">分析</span>
+      </div>
+      <div class="bottom-nav-item flex flex-col items-center gap-1 py-2 px-4 rounded-xl cursor-pointer transition-all" data-page="settings" onclick="navigateToPage('settings')">
+        <i class="fa fa-cog text-xl"></i>
+        <span class="text-xs">设置</span>
+      </div>
+    </div>
+  </nav>
+
+  <style>
+    .bottom-nav-item {
+      min-width: 48px;
+      min-height: 48px;
+    }
+    .bottom-nav-item.active {
+      color: #165DFF;
+      background-color: #165DFF10;
+    }
+    .bottom-nav-item:hover {
+      background-color: #f3f4f6;
+    }
+    /* 为移动端底部导航栏留出空间 */
+    @media (max-width: 1023px) {
+      main {
+        padding-bottom: 80px;
+      }
+    }
+    /* 优化表单标签在移动端的显示 */
+    @media (max-width: 1023px) {
+      .form-label {
+        font-size: 15px;
+      }
+      .form-input, .form-select, .size-input {
+        font-size: 16px;
+      }
+    }
+  </style>
+
+  <script>
+    // 全局变量
+    let personId = 1;
+    let currentPerson = null;
+    let compareChart = null;
+    
+    // 批量选择模式
+    let selectMode = false;
+    let selectedPersonIds = new Set();
+    
+    // 历史记录批量选择模式
+    let historySelectMode = false;
+    let selectedHistoryIds = new Set();
+    
+    // 图表实例存储
+    let charts = {
+      bodyTypeChart: null,
+      trendChart: null,
+      genderChart: null,
+      categoryChart: null,
+      bodyDistChart: null
+    };
+    
+    // 初始化personId从本地存储中读取最大ID
+    function initializePersonId() {
+      const persons = getAllPersons();
+      if (persons.length > 0) {
+        const maxId = persons.reduce((max, person) => {
+          const idNum = parseInt(person.id.replace('DH', ''));
+          return idNum > max ? idNum : max;
+        }, 0);
+        personId = maxId + 1;
+      }
+    }
+    
+    // 尺寸数据配置
+    const sizeData = {
+      maleShirt:["衣长","肩宽","袖长","袖围","袖口围","背长","领围","胸围","腰围","臀围"],
+      femaleShirt:["衣长","肩宽","袖长","袖围","袖口围","背长","胸高点","领围","胸围","腰围","臀围"],
+      maleSuit:["衣长","肩宽","袖长","袖围","袖口","背宽","背长","领围","上身","胸围","腰围","臀围"],
+      femaleSuit:["衣长","肩宽","袖长","袖围","袖口","背宽","背长","胸高点","领围","上身","胸围","腰围","臀围"],
+      advancedSuit:["衣长","肩宽","袖长","袖围","袖口","背宽","背长","领围","上身","胸围","腰围","臀围"],
+      advancedPants:["腰围","臀围","裤长","大腿围/横档","中档/膝围","脚口围","通裆长"],
+      pants:["腰围","臀围","裤长","大腿围/横档","中档/膝围","脚口围","通裆长"],
+      dress:["衣长","肩宽","背宽","背长","胸高点","胸高点距","袖长","袖肥","领围","胸围","腰围","臀围","下摆围"],
+      skirt:["裙长","腰围","臀围","腹围","腰头高","大腿围","膝围","开衩高度"],
+      coat:["衣长","肩宽","袖长","袖围","袖口","背宽","背长","胸高点","领围","上身","胸围","腰围","臀围"],
+      maleVest:["衣长","肩宽","背宽","背长","领围","上身","胸围","腰围","臀围"],
+      femaleVest:["衣长","肩宽","背宽","背长","胸高点","领围","上身","胸围","腰围","臀围"],
+      maleChineseShirt:["衣长","肩宽","袖长","袖围","袖口","背宽","背长","领围","上身","胸围","腰围","臀围"],
+      maleZhongshan:["衣长","肩宽","袖长","袖围","袖口","背宽","背长","领围","上身","胸围","腰围","臀围"],
+      femaleChineseTop:["衣长","肩宽","袖长","袖围","袖口","背宽","背长","胸高点","领围","上身","胸围","腰围","臀围"],
+      femaleQipao:["衣长","肩宽","背宽","背长","胸高点","领围","上身","胸围","腰围","臀围","前胸宽","胸下围","胸高点距","前腰节长","后腰节长","腹围","腰臀长","袖笼深","袖长","上臂围","肘围","袖口围","膝围","小腿围","侧开衩高度","领座高","领面宽"]
+    };
+
+    // 身形类型配置
+    const bodyTypeConfig = {
+      male: {
+        types: [
+          {value: 'Y', text: 'Y偏瘦', icon: 'fa-long-arrow-down', color: '#3B82F6'},
+          {value: 'A', text: 'A标准', icon: 'fa-check', color: '#10B981'},
+          {value: 'B', text: 'B微胖', icon: 'fa-arrows-h', color: '#F59E0B'},
+          {value: 'C', text: 'C肥胖', icon: 'fa-arrows', color: '#EF4444'},
+          {value: 'M', text: 'M健身', icon: 'fa-heartbeat', color: '#14B8A6'}
+        ],
+        features: ['平肩', '溜肩', '高低肩', '驼背', '挺胸', '长颈', '短颈', '肚腩突出', '肩宽背厚', '鸡胸']
+      },
+      female: {
+        types: [
+          {value: 'X', text: 'X沙漏', icon: 'fa-balance-scale', color: '#EC4899'},
+          {value: 'A', text: 'A梨型', icon: 'fa-arrow-down', color: '#10B981'},
+          {value: 'H', text: 'H直筒', icon: 'fa-arrows-h', color: '#3B82F6'},
+          {value: 'O', text: 'O苹果', icon: 'fa-circle-o', color: '#F59E0B'},
+          {value: 'Y', text: 'Y倒三角', icon: 'fa-arrow-up', color: '#8B5CF6'},
+          {value: 'M', text: 'M健身', icon: 'fa-heartbeat', color: '#14B8A6'}
+        ],
+        features: ['平肩', '溜肩', '高低肩', '驼背', '挺胸', '长颈', '短颈', '副乳', '假胯宽', '小腹突出', '翘臀']
+      }
+    };
+
+    // 服装品类配置
+    const categoryConfig = {
+      maleShirt: '男士衬衫',
+      femaleShirt: '女士衬衫',
+      maleSuit: '男士西装',
+      femaleSuit: '女士西装',
+      advancedSuit: '高级定制西服',
+      advancedPants: '高级定制西裤',
+      pants: '西裤',
+      dress: '连衣裙',
+      skirt: '半身裙',
+      coat: '大衣',
+      maleVest: '男士马甲',
+      femaleVest: '女士马甲',
+      maleChineseShirt: '新中式衬衫',
+      maleZhongshan: '中山装',
+      femaleChineseTop: '新中式上衣',
+      femaleQipao: '旗袍'
+    };
+    
+    // 获取品类名称
+    function getCategoryName(category) {
+      return categoryConfig[category] || category;
+    }
+    
+    // 格式化日期时间
+    function formatDateTime(date) {
+      if (!date) return '';
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+    
+    // 性别对应的品类配置
+    const genderCategoryConfig = {
+      male: ['maleShirt', 'maleSuit', 'maleVest', 'maleChineseShirt', 'maleZhongshan', 'pants', 'coat', 'advancedSuit', 'advancedPants'],
+      female: ['femaleShirt', 'femaleSuit', 'femaleVest', 'femaleChineseTop', 'femaleQipao', 'pants', 'dress', 'skirt', 'coat']
+    };
+    
+    // 号型配置
+    const sizeTypeConfig = {
+      maleShirt: [
+        {neckSize: 37, standardSize: '165/80A', letterSize: 'XS', chestRange: '胸围 76~84cm', chestMin: 76, chestMax: 84},
+        {neckSize: 38, standardSize: '165/84A', letterSize: 'S', chestRange: '胸围 80~88cm', chestMin: 80, chestMax: 88},
+        {neckSize: 39, standardSize: '170/88A', letterSize: 'M', chestRange: '胸围 84~92cm', chestMin: 84, chestMax: 92},
+        {neckSize: 40, standardSize: '170/92A', letterSize: 'L', chestRange: '胸围 88~96cm', chestMin: 88, chestMax: 96},
+        {neckSize: 41, standardSize: '175/96A', letterSize: 'XL', chestRange: '胸围 92~100cm', chestMin: 92, chestMax: 100},
+        {neckSize: 42, standardSize: '180/100A', letterSize: 'XXL', chestRange: '胸围 96~104cm', chestMin: 96, chestMax: 104},
+        {neckSize: 43, standardSize: '185/104A', letterSize: 'XXXL', chestRange: '胸围 100~108cm', chestMin: 100, chestMax: 108},
+        {neckSize: 44, standardSize: '190/108A', letterSize: 'XXXXL', chestRange: '胸围 104~112cm', chestMin: 104, chestMax: 112}
+      ],
+      femaleShirt: [
+        {neckSize: 35, standardSize: '150/76A', letterSize: 'XS', chestRange: '胸围 72~78cm', chestMin: 72, chestMax: 78},
+        {neckSize: 36, standardSize: '155/80A', letterSize: 'S', chestRange: '胸围 76~84cm', chestMin: 76, chestMax: 84},
+        {neckSize: 37, standardSize: '160/84A', letterSize: 'M', chestRange: '胸围 80~88cm', chestMin: 80, chestMax: 88},
+        {neckSize: 38, standardSize: '165/88A', letterSize: 'L', chestRange: '胸围 84~92cm', chestMin: 84, chestMax: 92},
+        {neckSize: 39, standardSize: '170/92A', letterSize: 'XL', chestRange: '胸围 88~96cm', chestMin: 88, chestMax: 96},
+        {neckSize: 40, standardSize: '175/96A', letterSize: 'XXL', chestRange: '胸围 92~100cm', chestMin: 92, chestMax: 100}
+      ]
+    };
+
+    // 高级定制西服选项配置
+    const advancedSuitOptions = {
+      lapelType: {
+        label: '驳头选择',
+        options: ['平驳头', '枪驳头', '青果领']
+      },
+      singleButton: {
+        label: '单排扣',
+        options: ['单排一粒扣', '单排两粒扣', '单排三粒扣']
+      },
+      doubleButton: {
+        label: '双排扣',
+        options: ['双排两粒扣', '双排四粒扣', '双排六粒扣']
+      },
+      hemStyle: {
+        label: '下摆形式',
+        options: ['正常圆下摆', '小圆摆', '大圆摆', '直下摆', '斜下摆']
+      },
+      lapelWidth: {
+        label: '驳头宽度',
+        type: 'input'
+      },
+      facingStyle: {
+        label: '挂面形式',
+        options: ['直挂面', '弯挂面', '弧形宝剑头弯挂面']
+      },
+      liningStructure: {
+        label: '内里结构',
+        options: ['全里布', '半里布', '无里布']
+      },
+      breastPocket: {
+        label: '手巾袋',
+        options: ['直手巾袋', '梯形手巾袋', '弧形手巾袋', '贴口袋']
+      },
+      flapPocket: {
+        label: '袋盖',
+        options: ['平袋盖', '斜袋盖', '双开线袋', '斜双开线袋', '明贴口袋']
+      },
+      ventStyle: {
+        label: '开衩方式',
+        options: ['双开叉', '单开叉', '不开叉']
+      }
+    };
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeApp();
+      initializeDemoData();
+    });
+
+    // 初始化应用
+    function initializeApp() {
+      // 清除测试数据（李四和张三）
+      clearTestDataOnInit();
+      
+      // 初始化personId
+      initializePersonId();
+      
+      // 设置当前日期
+      const now = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+      document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN', options);
+      
+      // 设置事件监听器
+      setupEventListeners();
+      
+      // 初始化量体管理列表
+      renderPersonList();
+      
+      // 更新统计数据
+      updateStatistics();
+      
+      // 更新图表
+      updateCharts();
+    }
+
+    // 设置事件监听器
+    function setupEventListeners() {
+      // 桌面端导航切换
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const page = this.dataset.page;
+          navigateToPage(page);
+        });
+      });
+      
+      // 移动端导航切换
+      document.querySelectorAll('.nav-item-mobile').forEach(item => {
+        item.addEventListener('click', function() {
+          const page = this.dataset.page;
+          if (page) {
+            navigateToPage(page);
+          }
+        });
+      });
+
+      // 历史搜索
+      const historySearch = document.getElementById('history-search');
+      if (historySearch) {
+        historySearch.addEventListener('input', function() {
+          searchHistory(this.value);
+        });
+      }
+      
+      // 全局搜索（带防抖）
+      const globalSearch = document.getElementById('global-search');
+      if (globalSearch) {
+        let searchTimeout;
+        globalSearch.addEventListener('input', function() {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            searchPerson(this.value);
+          }, 300);
+        });
+      }
+    }
+
+    // 页面切换
+    function switchPage(pageName) {
+      // 更新导航状态
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.page === pageName) {
+          item.classList.add('active');
+        }
+      });
+
+      // 隐藏所有页面
+      document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.add('hidden');
+      });
+
+      // 显示目标页面
+      const targetPage = document.getElementById(`${pageName}-page`);
+      if (targetPage) {
+        targetPage.classList.remove('hidden');
+        
+        // 页面特定初始化
+        if (pageName === 'history') {
+          renderHistoryList();
+        } else if (pageName === 'analysis') {
+          updateCharts();
+        } else if (pageName === 'measurements') {
+          renderPersonList();
+        }
+      }
+    }
+
+    // 导航到页面（同时更新侧边栏和底部导航栏）
+    function navigateToPage(pageName) {
+      // 更新侧边栏导航状态
+      document.querySelectorAll('.nav-item').forEach(item => {
+        if (item.dataset.page === pageName) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      
+      // 更新底部导航栏状态
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        if (item.dataset.page === pageName) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      
+      // 隐藏所有页面
+      document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.add('hidden');
+      });
+      
+      // 显示目标页面
+      const targetPage = document.getElementById(`${pageName}-page`);
+      if (targetPage) {
+        targetPage.classList.remove('hidden');
+        
+        // 页面特定初始化
+        if (pageName === 'history') {
+          renderHistoryList();
+        } else if (pageName === 'analysis') {
+          updateCharts();
+        } else if (pageName === 'measurements') {
+          renderPersonList();
+        }
+      }
+    }
+
+    // 新增人员
+    function addPerson() {
+      const id = personId++;
+      currentPerson = {
+        id: `DH${id.toString().padStart(6, '0')}`,
+        name: '',
+        gender: '',
+        phone: '',
+        height: '',
+        weight: '',
+        bodyType: '',
+        bodyFeatures: [],
+        categories: [],
+        measurements: {},
+        customOptions: {},
+        preferences: {
+          fit: '修身',
+          fabric: '',
+          habit: '',
+          notes: ''
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      renderPersonForm();
+      document.getElementById('personFormContainer').classList.remove('hidden');
+    }
+
+    // 渲染人员表单
+    function renderPersonForm() {
+      const content = document.getElementById('personFormContent');
+      if (!content || !currentPerson) return;
+      
+      const html = `
+        <form onsubmit="savePerson(event)">
+          <!-- 基础信息 -->
+          <div class="mb-6">
+            <h4 class="text-lg font-medium mb-4">基础信息</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="form-group">
+                <label class="form-label">客户ID</label>
+                <input type="text" readonly value="${currentPerson.id}" class="form-input bg-gray-50">
+              </div>
+              <div class="form-group">
+                <label class="form-label text-red-500">姓名 *</label>
+                <input type="text" class="form-input name-input" value="${currentPerson.name}" 
+                       placeholder="请输入客户姓名" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label text-red-500">性别 *</label>
+                <select class="form-select gender-select" onchange="loadBodyType()" 
+                        value="${currentPerson.gender}" required>
+                  <option value="">请选择</option>
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">手机号</label>
+                <input type="tel" class="form-input phone-input" value="${currentPerson.phone}" 
+                       placeholder="请输入手机号">
+              </div>
+              <div class="form-group">
+                <label class="form-label">身高(cm)</label>
+                <input type="text" class="form-input height-input" value="${currentPerson.height}" 
+                       placeholder="请输入身高">
+              </div>
+              <div class="form-group">
+                <label class="form-label">体重(kg)</label>
+                <input type="text" class="form-input weight-input" value="${currentPerson.weight}" 
+                       placeholder="请输入体重">
+              </div>
+            </div>
+          </div>
+
+          <!-- 身形判定 -->
+          <div class="mb-6">
+            <h4 class="text-lg font-medium mb-4">身形判定</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">国标身形</label>
+                <div id="bodyTypeContainer" class="flex flex-wrap gap-2 mt-2">
+                  <div class="text-sm text-gray-500">请先选择性别</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">身形特征</label>
+                <div id="bodyFeatureContainer" class="flex flex-wrap gap-2 mt-2">
+                  <div class="text-sm text-gray-500">请先选择性别</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 定制品类 -->
+          <div class="mb-6">
+            <h4 class="text-lg font-medium mb-4">定制品类（可多选）</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="categoryContainer">
+              <!-- 品类选项将通过JavaScript动态生成 -->
+            </div>
+          </div>
+
+          <!-- 尺寸录入 -->
+          <div class="mb-6">
+            <h4 class="text-lg font-medium mb-4">尺寸录入</h4>
+            <div id="sizeContainer" class="space-y-4">
+              <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <i class="fa fa-info-circle text-gray-400 mb-2"></i>
+                <p class="text-gray-500">请先选择定制品类</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 穿着偏好 -->
+          <div class="mb-6">
+            <h4 class="text-lg font-medium mb-4">穿着偏好</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">版型</label>
+                <select class="form-select fit-input" value="${currentPerson.preferences.fit}">
+                  <option value="修身">修身</option>
+                  <option value="宽松">宽松</option>
+                  <option value="直筒">直筒</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">面料工艺</label>
+                <input type="text" class="form-input fabric-input" value="${currentPerson.preferences.fabric}" 
+                       placeholder="请输入面料工艺要求">
+              </div>
+              <div class="form-group">
+                <label class="form-label">穿着习惯</label>
+                <input type="text" class="form-input habit-input" value="${currentPerson.preferences.habit}" 
+                       placeholder="请输入穿着习惯">
+              </div>
+              <div class="form-group">
+                <label class="form-label">特殊备注</label>
+                <textarea rows="3" class="form-input notes-input" 
+                          placeholder="请输入特殊要求或备注">${currentPerson.preferences.notes}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="flex flex-col gap-3 pt-6 border-t border-gray-200">
+            <!-- 第一行：取消和预览 -->
+            <div class="flex gap-3">
+              <button type="button" onclick="closePersonForm()" class="btn-secondary btn-sm flex-1">
+                取消
+              </button>
+              <button type="button" onclick="previewData()" class="btn-secondary btn-sm flex-1">
+                <i class="fa fa-eye"></i>
+                预览
+              </button>
+            </div>
+            <!-- 第二行：智能生成和保存 -->
+            <div class="flex gap-3">
+              <button type="button" onclick="autoGenerateSizes()" class="btn-secondary btn-sm flex-1">
+                <i class="fa fa-magic"></i>
+                智能生成
+              </button>
+              <button type="submit" class="btn-primary btn-sm flex-1">
+                <i class="fa fa-save"></i>
+                保存
+              </button>
+            </div>
+          </div>
+        </form>
+      `;
+      
+      content.innerHTML = html;
+      
+      // 加载品类选项
+      function loadCategoryOptions() {
+        const gender = document.querySelector('.gender-select')?.value;
+        const categoryContainer = document.getElementById('categoryContainer');
+        if (!categoryContainer) return;
+        
+        if (!gender) {
+          categoryContainer.innerHTML = '<div class="text-center p-4 bg-gray-50 rounded-lg w-full col-span-full"><i class="fa fa-info-circle text-gray-400 mb-2"></i><p class="text-gray-500">请先选择性别</p></div>';
+          return;
+        }
+        
+        const categories = genderCategoryConfig[gender] || [];
+        categoryContainer.innerHTML = categories.map(category => `
+          <label class="body-tag cursor-pointer">
+            <input type="checkbox" value="${category}" class="category-checkbox" 
+                   ${currentPerson.categories.includes(category) ? 'checked' : ''}>
+            <span>${categoryConfig[category]}</span>
+          </label>
+        `).join('');
+        
+        // 设置品类选中状态和事件监听
+        document.querySelectorAll('.category-checkbox').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            loadSizeFields();
+          });
+        });
+        
+        // 如果已有品类，加载尺寸字段
+        if (currentPerson.categories.length > 0) {
+          loadSizeFields();
+        }
+      }
+      
+      // 设置已选中的值
+      if (currentPerson.gender) {
+        const genderSelect = document.querySelector('.gender-select');
+        if (genderSelect) {
+          genderSelect.value = currentPerson.gender;
+          loadBodyType();
+          loadCategoryOptions();
+        }
+      } else {
+        // 初始加载品类选项（未选择性别时）
+        loadCategoryOptions();
+      }
+      
+      // 为性别选择添加事件监听
+      const genderSelect = document.querySelector('.gender-select');
+      if (genderSelect) {
+        genderSelect.addEventListener('change', function() {
+          loadBodyType();
+          loadCategoryOptions();
+        });
+      }
+    }
+
+    // 加载身形选项
+    function loadBodyType() {
+      const genderSelect = document.querySelector('.gender-select');
+      const typeContainer = document.getElementById('bodyTypeContainer');
+      const featureContainer = document.getElementById('bodyFeatureContainer');
+      
+      if (!genderSelect || !typeContainer || !featureContainer) return;
+      
+      const gender = genderSelect.value;
+      
+      if (!gender) {
+        typeContainer.innerHTML = '<div class="text-sm text-gray-500">请先选择性别</div>';
+        featureContainer.innerHTML = '<div class="text-sm text-gray-500">请先选择性别</div>';
+        return;
+      }
+      
+      // 获取性别对应的配置
+      const genderConfig = bodyTypeConfig[gender];
+      if (!genderConfig) {
+        typeContainer.innerHTML = '<div class="text-sm text-gray-500">暂无身形数据</div>';
+        featureContainer.innerHTML = '<div class="text-sm text-gray-500">暂无身形特征数据</div>';
+        return;
+      }
+      
+      // 加载身形类型
+      const bodyTypes = genderConfig.types || [];
+      typeContainer.innerHTML = bodyTypes.map(type => `
+        <label class="body-tag text-sm cursor-pointer" style="border-color: ${type.color}">
+          <input type="radio" name="bodyType" value="${type.value}" 
+                 ${currentPerson.bodyType === type.value ? 'checked' : ''}>
+          <i class="fa ${type.icon}" style="color: ${type.color}"></i>
+          <span>${type.text}</span>
+        </label>
+      `).join('');
+      
+      // 加载身形特征
+      const features = genderConfig.features || [];
+      featureContainer.innerHTML = features.map(feature => `
+        <label class="body-tag text-sm cursor-pointer">
+          <input type="checkbox" value="${feature}" class="feature-checkbox"
+                 ${currentPerson.bodyFeatures.includes(feature) ? 'checked' : ''}>
+          <span>${feature}</span>
+        </label>
+      `).join('');
+    }
+
+    // 加载尺寸字段
+    function loadSizeFields() {
+      const container = document.getElementById('sizeContainer');
+      if (!container) return;
+      
+      const checkboxes = document.querySelectorAll('.category-checkbox:checked');
+      const selectedCategories = Array.from(checkboxes).map(cb => cb.value);
+      
+      currentPerson.categories = selectedCategories;
+      
+      if (selectedCategories.length === 0) {
+        container.innerHTML = `
+          <div class="text-center p-4 bg-gray-50 rounded-lg">
+            <i class="fa fa-info-circle text-gray-400 mb-2"></i>
+            <p class="text-gray-500">请先选择定制品类</p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = '';
+      selectedCategories.forEach(category => {
+        const categoryName = categoryConfig[category];
+        const sizes = sizeData[category] || [];
+        
+        // 检查是否为衬衫品类，如果是则添加号型选择
+        const hasSizeType = (category === 'maleShirt' || category === 'femaleShirt');
+        
+        html += `
+          <div class="p-4 border rounded-lg bg-gray-50">
+            <div class="flex items-center justify-between mb-3">
+              <h5 class="font-medium text-primary">${categoryName}</h5>
+              <button type="button" onclick="autoFillCategory('${category}')" 
+                      class="text-xs btn-secondary">
+                <i class="fa fa-magic"></i>
+                智能填充
+              </button>
+            </div>
+            ${hasSizeType ? `
+            <div class="mb-4 p-3 bg-white rounded-lg border border-gray-200">
+              <label class="form-label text-sm font-medium">号型选择</label>
+              <select class="form-select size-type-select" onchange="selectSizeType('${category}', this.value)">
+                <option value="">请选择号型</option>
+                ${(sizeTypeConfig[category] || []).map((sizeType, index) => `
+                  <option value="${index}">
+                    ${sizeType.neckSize}｜${sizeType.standardSize}｜${sizeType.letterSize}｜${sizeType.chestRange}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+            ` : ''}
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="size-${category}">
+              ${sizes.map(size => {
+                if ((category === 'maleSuit' || category === 'femaleSuit' || category === 'maleVest' || category === 'femaleVest' || category === 'maleChineseShirt' || category === 'maleZhongshan' || category === 'femaleChineseTop' || category === 'femaleQipao' || category === 'coat' || category === 'maleShirt' || category === 'femaleShirt' || category === 'dress') && size === '衣长') {
+                  return `
+                  <div class="form-group col-span-2 md:col-span-3">
+                    <div class="flex items-center justify-between">
+                      <label class="form-label text-sm">${size}</label>
+                      <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" class="mr-2" onchange="toggleFrontBackLength('${category}', this.checked)">
+                        <span class="text-xs text-gray-600">展开前衣长/后衣长</span>
+                      </label>
+                    </div>
+                    <input type="text" class="form-input size-input" 
+                           data-category="${category}" data-size="${size}"
+                           value="${currentPerson.measurements[category]?.[size] || ''}"
+                           placeholder="请输入${size}">
+                    <div class="grid grid-cols-2 gap-3 mt-3 hidden" id="front-back-length-${category}">
+                      <div class="form-group">
+                        <label class="form-label text-sm">前衣长</label>
+                        <input type="text" class="form-input size-input" 
+                               data-category="${category}" data-size="前衣长"
+                               value="${currentPerson.measurements[category]?.['前衣长'] || ''}"
+                               placeholder="请输入前衣长">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label text-sm">后衣长</label>
+                        <input type="text" class="form-input size-input" 
+                               data-category="${category}" data-size="后衣长"
+                               value="${currentPerson.measurements[category]?.['后衣长'] || ''}"
+                               placeholder="请输入后衣长">
+                      </div>
+                    </div>
+                  </div>
+                  `;
+                } else if (category === 'pants' && size === '通裆长') {
+                  return `
+                  <div class="form-group col-span-2 md:col-span-3">
+                    <div class="flex items-center justify-between">
+                      <label class="form-label text-sm">${size}</label>
+                      <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" class="mr-2" onchange="toggleCrotchLength(this.checked)">
+                        <span class="text-xs text-gray-600">展开前裆长/后裆长</span>
+                      </label>
+                    </div>
+                    <input type="text" class="form-input size-input" 
+                           data-category="${category}" data-size="${size}"
+                           value="${currentPerson.measurements[category]?.[size] || ''}"
+                           placeholder="请输入${size}">
+                    <div class="grid grid-cols-2 gap-3 mt-3 hidden" id="crotch-length-container">
+                      <div class="form-group">
+                        <label class="form-label text-sm">前裆长</label>
+                        <input type="text" class="form-input size-input" 
+                               data-category="${category}" data-size="前裆长"
+                               value="${currentPerson.measurements[category]?.['前裆长'] || ''}"
+                               placeholder="请输入前裆长">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label text-sm">后裆长</label>
+                        <input type="text" class="form-input size-input" 
+                               data-category="${category}" data-size="后裆长"
+                               value="${currentPerson.measurements[category]?.['后裆长'] || ''}"
+                               placeholder="请输入后裆长">
+                      </div>
+                    </div>
+                  </div>
+                  `;
+                } else {
+                  return `
+                  <div class="form-group">
+                    <label class="form-label text-sm">${size}</label>
+                    <input type="text" class="form-input size-input" 
+                           data-category="${category}" data-size="${size}"
+                           value="${currentPerson.measurements[category]?.[size] || ''}"
+                           placeholder="请输入${size}">
+                  </div>
+                  `;
+                }
+              }).join('')}
+            </div>
+            ${category === 'advancedSuit' ? renderAdvancedSuitOptions(category) : ''}
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    // 渲染高级定制西服选项
+    function renderAdvancedSuitOptions(category) {
+      const customOptions = currentPerson.customOptions || {};
+      const categoryOptions = customOptions[category] || {};
+      
+      let optionsHtml = `
+        <div class="mt-4 p-4 bg-white rounded-lg border border-blue-200">
+          <h6 class="font-medium text-blue-600 mb-4 flex items-center gap-2">
+            <i class="fa fa-cog"></i>
+            高级定制选项
+          </h6>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      `;
+      
+      Object.keys(advancedSuitOptions).forEach(key => {
+        const option = advancedSuitOptions[key];
+        const currentValue = categoryOptions[key] || '';
+        
+        if (option.type === 'input') {
+          optionsHtml += `
+            <div class="form-group">
+              <label class="form-label text-sm">${option.label}</label>
+              <input type="text" class="form-input advanced-option-input" 
+                     data-category="${category}" data-option="${key}"
+                     value="${currentValue}"
+                     placeholder="请输入${option.label}">
+            </div>
+          `;
+        } else {
+          optionsHtml += `
+            <div class="form-group">
+              <label class="form-label text-sm">${option.label}</label>
+              <select class="form-select advanced-option-select" 
+                      data-category="${category}" data-option="${key}">
+                <option value="">请选择</option>
+                ${option.options.map(opt => `
+                  <option value="${opt}" ${currentValue === opt ? 'selected' : ''}>${opt}</option>
+                `).join('')}
+              </select>
+            </div>
+          `;
+        }
+      });
+      
+      optionsHtml += `
+          </div>
+        </div>
+      `;
+      
+      return optionsHtml;
+    }
+
+    // 智能生成尺寸
+    function autoGenerateSizes() {
+      const heightInput = document.querySelector('.height-input');
+      const weightInput = document.querySelector('.weight-input');
+      const genderSelect = document.querySelector('.gender-select');
+      
+      if (!heightInput || !weightInput || !genderSelect) {
+        alert('智能生成功能需要身高、体重和性别信息，请先填写');
+        return;
+      }
+      
+      const height = parseFloat(heightInput.value) || 0;
+      const weight = parseFloat(weightInput.value) || 0;
+      const gender = genderSelect.value;
+      
+      if (!height || !weight || !gender) {
+        alert('智能生成功能需要身高、体重和性别信息，请先填写');
+        return;
+      }
+      
+      const selectedCategories = currentPerson.categories;
+      
+      if (selectedCategories.length === 0) {
+        alert('请先选择定制品类');
+        return;
+      }
+      
+      selectedCategories.forEach(category => {
+        autoFillCategory(category, height, weight, gender);
+      });
+      
+      showNotification('智能生成完成', 'success');
+    }
+
+    // 智能填充特定品类尺寸
+    function autoFillCategory(category, height, weight, gender) {
+      if (!height) {
+        const heightInput = document.querySelector('.height-input');
+        const weightInput = document.querySelector('.weight-input');
+        const genderSelect = document.querySelector('.gender-select');
+        
+        if (!heightInput || !weightInput || !genderSelect) return;
+        
+        height = parseFloat(heightInput.value) || 0;
+        weight = parseFloat(weightInput.value) || 0;
+        gender = genderSelect.value;
+      }
+      
+      if (!height || !weight || !gender) return;
+      
+      const sizes = {};
+      
+      // 根据身高体重生成基础尺寸
+      switch(category) {
+        case 'maleShirt':
+          sizes['衣长'] = 72 + (height - 170) * 0.4;
+          sizes['肩宽'] = 42 + (height - 170) * 0.3;
+          sizes['袖长'] = 58 + (height - 170) * 0.5;
+          sizes['袖围'] = 38 + (weight - 60) * 0.2;
+          sizes['袖口围'] = 20 + (weight - 60) * 0.05;
+          sizes['背长'] = 42 + (height - 170) * 0.2;
+          sizes['领围'] = 38 + (weight - 60) * 0.1;
+          sizes['胸围'] = 90 + (weight - 60) * 0.8;
+          sizes['腰围'] = 80 + (weight - 60) * 0.7;
+          sizes['臀围'] = 95 + (weight - 60) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'femaleShirt':
+          sizes['衣长'] = 65 + (height - 160) * 0.4;
+          sizes['肩宽'] = 38 + (height - 160) * 0.3;
+          sizes['袖长'] = 52 + (height - 160) * 0.5;
+          sizes['袖围'] = 34 + (weight - 50) * 0.2;
+          sizes['袖口围'] = 18 + (weight - 50) * 0.05;
+          sizes['背长'] = 38 + (height - 160) * 0.2;
+          sizes['胸高点'] = 20 + (weight - 50) * 0.1;
+          sizes['领围'] = 35 + (weight - 50) * 0.1;
+          sizes['胸围'] = 80 + (weight - 50) * 0.8;
+          sizes['腰围'] = 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = 90 + (weight - 50) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'maleSuit':
+          sizes['衣长'] = 72 + (height - 170) * 0.4;
+          sizes['肩宽'] = 42 + (height - 170) * 0.3;
+          sizes['袖长'] = 58 + (height - 170) * 0.5;
+          sizes['袖围'] = 38 + (weight - 60) * 0.2;
+          sizes['袖口'] = 20 + (weight - 60) * 0.05;
+          sizes['背宽'] = 40 + (height - 170) * 0.3;
+          sizes['背长'] = 42 + (height - 170) * 0.2;
+          sizes['胸高点'] = 20 + (weight - 60) * 0.1;
+          sizes['领围'] = 38 + (weight - 60) * 0.1;
+          sizes['上身'] = 60 + (height - 170) * 0.3;
+          sizes['胸围'] = 90 + (weight - 60) * 0.8;
+          sizes['腰围'] = 80 + (weight - 60) * 0.7;
+          sizes['臀围'] = 95 + (weight - 60) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'femaleSuit':
+          sizes['衣长'] = 65 + (height - 160) * 0.4;
+          sizes['肩宽'] = 38 + (height - 160) * 0.3;
+          sizes['袖长'] = 52 + (height - 160) * 0.5;
+          sizes['袖围'] = 34 + (weight - 50) * 0.2;
+          sizes['袖口'] = 18 + (weight - 50) * 0.05;
+          sizes['背宽'] = 36 + (height - 160) * 0.3;
+          sizes['背长'] = 38 + (height - 160) * 0.2;
+          sizes['胸高点'] = 20 + (weight - 50) * 0.1;
+          sizes['领围'] = 35 + (weight - 50) * 0.1;
+          sizes['上身'] = 55 + (height - 160) * 0.3;
+          sizes['胸围'] = 80 + (weight - 50) * 0.8;
+          sizes['腰围'] = 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = 90 + (weight - 50) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'dress':
+          sizes['衣长'] = 100 + (height - 160) * 0.5;
+          sizes['肩宽'] = 38 + (height - 160) * 0.3;
+          sizes['背宽'] = 36 + (height - 160) * 0.3;
+          sizes['背长'] = 38 + (height - 160) * 0.2;
+          sizes['胸高点'] = 20 + (weight - 50) * 0.1;
+          sizes['胸高点距'] = 20 + (weight - 50) * 0.1;
+          sizes['袖长'] = 52 + (height - 160) * 0.5;
+          sizes['袖肥'] = 34 + (weight - 50) * 0.2;
+          sizes['领围'] = 35 + (weight - 50) * 0.1;
+          sizes['胸围'] = 80 + (weight - 50) * 0.8;
+          sizes['腰围'] = 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = 90 + (weight - 50) * 0.9;
+          sizes['下摆围'] = 100 + (weight - 50) * 0.8;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'maleVest':
+          sizes['衣长'] = 60 + (height - 170) * 0.3;
+          sizes['肩宽'] = 42 + (height - 170) * 0.3;
+          sizes['背宽'] = 40 + (height - 170) * 0.3;
+          sizes['背长'] = 42 + (height - 170) * 0.2;
+          sizes['领围'] = 38 + (weight - 60) * 0.1;
+          sizes['上身'] = 60 + (height - 170) * 0.3;
+          sizes['胸围'] = 90 + (weight - 60) * 0.8;
+          sizes['腰围'] = 80 + (weight - 60) * 0.7;
+          sizes['臀围'] = 95 + (weight - 60) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'femaleVest':
+          sizes['衣长'] = 55 + (height - 160) * 0.3;
+          sizes['肩宽'] = 38 + (height - 160) * 0.3;
+          sizes['背宽'] = 36 + (height - 160) * 0.3;
+          sizes['背长'] = 38 + (height - 160) * 0.2;
+          sizes['胸高点'] = 20 + (weight - 50) * 0.1;
+          sizes['领围'] = 35 + (weight - 50) * 0.1;
+          sizes['上身'] = 55 + (height - 160) * 0.3;
+          sizes['胸围'] = 80 + (weight - 50) * 0.8;
+          sizes['腰围'] = 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = 90 + (weight - 50) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'skirt':
+          sizes['裙长'] = 60 + (height - 160) * 0.3;
+          sizes['腰围'] = 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = 90 + (weight - 50) * 0.9;
+          sizes['腹围'] = 75 + (weight - 50) * 0.8;
+          sizes['腰头高'] = 8 + (weight - 50) * 0.05;
+          sizes['大腿围'] = 50 + (weight - 50) * 0.3;
+          sizes['膝围'] = 38 + (weight - 50) * 0.2;
+          sizes['开衩高度'] = 15 + (height - 160) * 0.1;
+          break;
+        case 'maleChineseShirt':
+          sizes['衣长'] = 70 + (height - 170) * 0.4;
+          sizes['肩宽'] = 42 + (height - 170) * 0.3;
+          sizes['袖长'] = 58 + (height - 170) * 0.5;
+          sizes['袖围'] = 38 + (weight - 60) * 0.2;
+          sizes['袖口'] = 20 + (weight - 60) * 0.05;
+          sizes['背宽'] = 40 + (height - 170) * 0.3;
+          sizes['背长'] = 42 + (height - 170) * 0.2;
+          sizes['领围'] = 38 + (weight - 60) * 0.1;
+          sizes['上身'] = 60 + (height - 170) * 0.3;
+          sizes['胸围'] = 90 + (weight - 60) * 0.8;
+          sizes['腰围'] = 80 + (weight - 60) * 0.7;
+          sizes['臀围'] = 95 + (weight - 60) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'maleZhongshan':
+          sizes['衣长'] = 70 + (height - 170) * 0.4;
+          sizes['肩宽'] = 42 + (height - 170) * 0.3;
+          sizes['袖长'] = 58 + (height - 170) * 0.5;
+          sizes['袖围'] = 38 + (weight - 60) * 0.2;
+          sizes['袖口'] = 20 + (weight - 60) * 0.05;
+          sizes['背宽'] = 40 + (height - 170) * 0.3;
+          sizes['背长'] = 42 + (height - 170) * 0.2;
+          sizes['领围'] = 38 + (weight - 60) * 0.1;
+          sizes['上身'] = 60 + (height - 170) * 0.3;
+          sizes['胸围'] = 90 + (weight - 60) * 0.8;
+          sizes['腰围'] = 80 + (weight - 60) * 0.7;
+          sizes['臀围'] = 95 + (weight - 60) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'femaleChineseTop':
+          sizes['衣长'] = 65 + (height - 160) * 0.4;
+          sizes['肩宽'] = 38 + (height - 160) * 0.3;
+          sizes['袖长'] = 52 + (height - 160) * 0.5;
+          sizes['袖围'] = 34 + (weight - 50) * 0.2;
+          sizes['袖口'] = 18 + (weight - 50) * 0.05;
+          sizes['背宽'] = 36 + (height - 160) * 0.3;
+          sizes['背长'] = 38 + (height - 160) * 0.2;
+          sizes['胸高点'] = 20 + (weight - 50) * 0.1;
+          sizes['领围'] = 35 + (weight - 50) * 0.1;
+          sizes['上身'] = 55 + (height - 160) * 0.3;
+          sizes['胸围'] = 80 + (weight - 50) * 0.8;
+          sizes['腰围'] = 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = 90 + (weight - 50) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'femaleQipao':
+          sizes['衣长'] = 100 + (height - 160) * 0.5;
+          sizes['肩宽'] = 38 + (height - 160) * 0.3;
+          sizes['背宽'] = 36 + (height - 160) * 0.3;
+          sizes['背长'] = 38 + (height - 160) * 0.2;
+          sizes['胸高点'] = 20 + (weight - 50) * 0.1;
+          sizes['领围'] = 35 + (weight - 50) * 0.1;
+          sizes['上身'] = 55 + (height - 160) * 0.3;
+          sizes['胸围'] = 80 + (weight - 50) * 0.8;
+          sizes['腰围'] = 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = 90 + (weight - 50) * 0.9;
+          sizes['前胸宽'] = 35 + (weight - 50) * 0.2;
+          sizes['胸下围'] = 75 + (weight - 50) * 0.8;
+          sizes['胸高点距'] = 20 + (weight - 50) * 0.1;
+          sizes['前腰节长'] = 40 + (height - 160) * 0.2;
+          sizes['后腰节长'] = 42 + (height - 160) * 0.2;
+          sizes['腹围'] = 70 + (weight - 50) * 0.7;
+          sizes['腰臀长'] = 60 + (height - 160) * 0.3;
+          sizes['袖笼深'] = 15 + (height - 160) * 0.1;
+          sizes['袖长'] = 52 + (height - 160) * 0.5;
+          sizes['上臂围'] = 25 + (weight - 50) * 0.2;
+          sizes['肘围'] = 22 + (weight - 50) * 0.15;
+          sizes['袖口围'] = 18 + (weight - 50) * 0.1;
+          sizes['膝围'] = 35 + (weight - 50) * 0.3;
+          sizes['小腿围'] = 30 + (weight - 50) * 0.25;
+          sizes['侧开衩高度'] = 15 + (height - 160) * 0.1;
+          sizes['领座高'] = 8 + (height - 160) * 0.05;
+          sizes['领面宽'] = 12 + (weight - 50) * 0.1;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+        case 'pants':
+          sizes['腰围'] = gender === 'male' ? 80 + (weight - 60) * 0.7 : 70 + (weight - 50) * 0.7;
+          sizes['臀围'] = gender === 'male' ? 95 + (weight - 60) * 0.9 : 90 + (weight - 50) * 0.9;
+          sizes['裤长'] = gender === 'male' ? 100 + (height - 170) * 0.8 : 95 + (height - 160) * 0.8;
+          sizes['大腿围/横档'] = gender === 'male' ? 55 + (weight - 60) * 0.3 : 50 + (weight - 50) * 0.3;
+          sizes['中档/膝围'] = gender === 'male' ? 40 + (weight - 60) * 0.2 : 38 + (weight - 50) * 0.2;
+          sizes['脚口围'] = 20;
+          sizes['通裆长'] = gender === 'male' ? 56 : 52;
+          sizes['前裆长'] = gender === 'male' ? 24 : 22;
+          sizes['后裆长'] = gender === 'male' ? 32 : 30;
+          break;
+        case 'coat':
+          sizes['衣长'] = 90 + (height - 170) * 0.5;
+          sizes['肩宽'] = 42 + (height - 170) * 0.3;
+          sizes['袖长'] = 58 + (height - 170) * 0.5;
+          sizes['袖围'] = 38 + (weight - 60) * 0.2;
+          sizes['袖口'] = 20 + (weight - 60) * 0.05;
+          sizes['背宽'] = 40 + (height - 170) * 0.3;
+          sizes['背长'] = 42 + (height - 170) * 0.2;
+          sizes['领围'] = 38 + (weight - 60) * 0.1;
+          sizes['上身'] = 60 + (height - 170) * 0.3;
+          sizes['胸围'] = 90 + (weight - 60) * 0.8;
+          sizes['腰围'] = 80 + (weight - 60) * 0.7;
+          sizes['臀围'] = 95 + (weight - 60) * 0.9;
+          sizes['前衣长'] = sizes['衣长'] - 2;
+          sizes['后衣长'] = sizes['衣长'] + 2;
+          break;
+      }
+      
+      // 四舍五入到一位小数
+      Object.keys(sizes).forEach(key => {
+        sizes[key] = Math.round(sizes[key] * 10) / 10;
+      });
+      
+      // 填充到表单
+      const sizeContainer = document.getElementById(`size-${category}`);
+      if (sizeContainer) {
+        Object.keys(sizes).forEach(size => {
+          const input = sizeContainer.querySelector(`[data-size="${size}"]`);
+          if (input) {
+            input.value = sizes[size];
+          }
+        });
+      }
+      
+      // 保存到当前人员数据
+      if (!currentPerson.measurements[category]) {
+        currentPerson.measurements[category] = {};
+      }
+      Object.assign(currentPerson.measurements[category], sizes);
+    }
+    
+    // 选择号型并填充尺寸
+    function selectSizeType(category, index) {
+      if (!index || index === '') return;
+      
+      const sizeTypes = sizeTypeConfig[category];
+      if (!sizeTypes || !sizeTypes[index]) return;
+      
+      const selectedType = sizeTypes[index];
+      const sizes = {};
+      
+      // 根据号型填充尺寸
+      if (category === 'maleShirt') {
+        sizes['颈围'] = selectedType.neckSize;
+        sizes['胸围'] = (selectedType.chestMin + selectedType.chestMax) / 2;
+        sizes['肩宽'] = 40 + (selectedType.neckSize - 38) * 2;
+        sizes['腰围'] = sizes['胸围'] - 10;
+        sizes['臀围'] = sizes['胸围'] + 5;
+        sizes['袖长'] = 58 + (selectedType.neckSize - 38) * 2;
+        sizes['袖口围'] = 20 + (selectedType.neckSize - 38) * 0.5;
+        sizes['衣长'] = 72 + (selectedType.neckSize - 38) * 2;
+        sizes['背长'] = 42 + (selectedType.neckSize - 38) * 1;
+      } else if (category === 'femaleShirt') {
+        sizes['颈围'] = selectedType.neckSize;
+        sizes['胸围'] = (selectedType.chestMin + selectedType.chestMax) / 2;
+        sizes['肩宽'] = 38 + (selectedType.neckSize - 35) * 1.5;
+        sizes['腰围'] = sizes['胸围'] - 10;
+        sizes['臀围'] = sizes['胸围'] + 5;
+        sizes['袖长'] = 52 + (selectedType.neckSize - 35) * 2;
+        sizes['袖口围'] = 18 + (selectedType.neckSize - 35) * 0.5;
+        sizes['衣长'] = 65 + (selectedType.neckSize - 35) * 2;
+        sizes['背长'] = 38 + (selectedType.neckSize - 35) * 1;
+        sizes['胸高点/胸距'] = 20 + (selectedType.neckSize - 35) * 0.5;
+        sizes['腰节长'] = 40 + (selectedType.neckSize - 35) * 1;
+      }
+      
+      // 四舍五入到一位小数
+      Object.keys(sizes).forEach(key => {
+        sizes[key] = Math.round(sizes[key] * 10) / 10;
+      });
+      
+      // 填充到表单
+      const sizeContainer = document.getElementById(`size-${category}`);
+      if (sizeContainer) {
+        Object.keys(sizes).forEach(size => {
+          const input = sizeContainer.querySelector(`[data-size="${size}"]`);
+          if (input) {
+            input.value = sizes[size];
+          }
+        });
+      }
+      
+      // 保存到当前人员数据
+      if (!currentPerson.measurements[category]) {
+        currentPerson.measurements[category] = {};
+      }
+      Object.assign(currentPerson.measurements[category], sizes);
+    }
+    
+    // 切换前衣长和后衣长的显示/隐藏
+    function toggleFrontBackLength(category, checked) {
+      const container = document.getElementById(`front-back-length-${category}`);
+      if (container) {
+        if (checked) {
+          container.classList.remove('hidden');
+        } else {
+          container.classList.add('hidden');
+        }
+      }
+    }
+    
+    // 切换前裆长和后裆长的显示/隐藏
+    function toggleCrotchLength(checked) {
+      const container = document.getElementById('crotch-length-container');
+      if (container) {
+        if (checked) {
+          container.classList.remove('hidden');
+        } else {
+          container.classList.add('hidden');
+        }
+      }
+    }
+
+    // 保存人员数据
+    function savePerson(event) {
+      event.preventDefault();
+      
+      if (!currentPerson) return;
+      
+      // 收集基础信息
+      const nameInput = document.querySelector('.name-input');
+      const genderSelect = document.querySelector('.gender-select');
+      const phoneInput = document.querySelector('.phone-input');
+      const heightInput = document.querySelector('.height-input');
+      const weightInput = document.querySelector('.weight-input');
+      
+      if (!nameInput || !genderSelect) return;
+      
+      currentPerson.name = nameInput.value.trim();
+      currentPerson.gender = genderSelect.value;
+      currentPerson.phone = phoneInput ? phoneInput.value.trim() : '';
+      currentPerson.height = heightInput ? parseFloat(heightInput.value) || '' : '';
+      currentPerson.weight = weightInput ? parseFloat(weightInput.value) || '' : '';
+      
+      // 验证必填项
+      if (!currentPerson.name) {
+        alert('请输入客户姓名');
+        return;
+      }
+      
+      if (!currentPerson.gender) {
+        alert('请选择性别');
+        return;
+      }
+      
+      // 收集身形信息
+      const bodyTypeRadio = document.querySelector('input[name="bodyType"]:checked');
+      currentPerson.bodyType = bodyTypeRadio ? bodyTypeRadio.value : '';
+      
+      const featureCheckboxes = document.querySelectorAll('.feature-checkbox:checked');
+      currentPerson.bodyFeatures = Array.from(featureCheckboxes).map(cb => cb.value);
+      
+      // 收集尺寸数据（不再强制验证必量尺寸）
+      currentPerson.measurements = {};
+      
+      currentPerson.categories.forEach(category => {
+        const categorySizes = {};
+        const inputs = document.querySelectorAll(`[data-category="${category}"]`);
+        inputs.forEach(input => {
+          const size = input.dataset.size;
+          const value = parseFloat(input.value);
+          if (!isNaN(value)) {
+            categorySizes[size] = value;
+          }
+        });
+        
+        // 保存所有输入的尺寸数据（无论是否完整）
+        if (Object.keys(categorySizes).length > 0) {
+          currentPerson.measurements[category] = categorySizes;
+        }
+      });
+      
+      // 收集高级定制选项
+      currentPerson.customOptions = {};
+      currentPerson.categories.forEach(category => {
+        if (category === 'advancedSuit') {
+          const categoryOptions = {};
+          
+          // 收集下拉选择
+          const selects = document.querySelectorAll(`.advanced-option-select[data-category="${category}"]`);
+          selects.forEach(select => {
+            const optionKey = select.dataset.option;
+            if (select.value) {
+              categoryOptions[optionKey] = select.value;
+            }
+          });
+          
+          // 收集输入框
+          const inputs = document.querySelectorAll(`.advanced-option-input[data-category="${category}"]`);
+          inputs.forEach(input => {
+            const optionKey = input.dataset.option;
+            if (input.value.trim()) {
+              categoryOptions[optionKey] = input.value.trim();
+            }
+          });
+          
+          if (Object.keys(categoryOptions).length > 0) {
+            currentPerson.customOptions[category] = categoryOptions;
+          }
+        }
+      });
+      
+      // 收集偏好信息
+      const fitInput = document.querySelector('.fit-input');
+      const fabricInput = document.querySelector('.fabric-input');
+      const habitInput = document.querySelector('.habit-input');
+      const notesInput = document.querySelector('.notes-input');
+      
+      currentPerson.preferences = {
+        fit: fitInput ? fitInput.value : '修身',
+        fabric: fabricInput ? fabricInput.value.trim() : '',
+        habit: habitInput ? habitInput.value.trim() : '',
+        notes: notesInput ? notesInput.value.trim() : ''
+      };
+      
+      currentPerson.updatedAt = new Date();
+      
+      // 保存到本地存储
+      savePersonToStorage(currentPerson);
+      
+      // 添加到历史记录
+      addToHistory(currentPerson);
+      
+      // 更新界面
+      closePersonForm();
+      updateStatistics();
+      renderPersonList();
+      updateCharts();
+      
+      showNotification('保存成功', 'success');
+    }
+
+    // 关闭人员表单
+    function closePersonForm() {
+      const container = document.getElementById('personFormContainer');
+      if (container) {
+        container.classList.add('hidden');
+      }
+      currentPerson = null;
+    }
+
+    // 预览数据
+    function previewData() {
+      if (!currentPerson) return;
+      
+      // 临时收集数据用于预览
+      const previewData = { ...currentPerson };
+      
+      const nameInput = document.querySelector('.name-input');
+      const genderSelect = document.querySelector('.gender-select');
+      const phoneInput = document.querySelector('.phone-input');
+      const heightInput = document.querySelector('.height-input');
+      const weightInput = document.querySelector('.weight-input');
+      
+      previewData.name = nameInput ? nameInput.value.trim() || '未命名' : '未命名';
+      previewData.gender = genderSelect ? genderSelect.value || '未选择' : '未选择';
+      previewData.phone = phoneInput ? phoneInput.value.trim() || '未填写' : '未填写';
+      previewData.height = heightInput ? parseFloat(heightInput.value) || '' : '';
+      previewData.weight = weightInput ? parseFloat(weightInput.value) || '' : '';
+      
+      const bodyTypeRadio = document.querySelector('input[name="bodyType"]:checked');
+      previewData.bodyType = bodyTypeRadio ? bodyTypeRadio.value : '未选择';
+      
+      const featureCheckboxes = document.querySelectorAll('.feature-checkbox:checked');
+      previewData.bodyFeatures = Array.from(featureCheckboxes).map(cb => cb.value);
+      
+      // 收集尺寸数据
+      previewData.measurements = {};
+      const selectedCategories = Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
+      selectedCategories.forEach(category => {
+        const categorySizes = {};
+        const inputs = document.querySelectorAll(`[data-category="${category}"]`);
+        inputs.forEach(input => {
+          const size = input.dataset.size;
+          const value = parseFloat(input.value);
+          if (!isNaN(value)) {
+            categorySizes[size] = value;
+          }
+        });
+        if (Object.keys(categorySizes).length > 0) {
+          previewData.measurements[category] = categorySizes;
+        }
+      });
+      
+      // 生成预览文本
+      let previewText = `德会时装定制量体数据预览\n`;
+      previewText += `生成时间：${new Date().toLocaleString()}\n\n`;
+      
+      previewText += `=== 基础信息 ===\n`;
+      previewText += `客户ID：${previewData.id}\n`;
+      previewText += `姓名：${previewData.name}\n`;
+      previewText += `性别：${previewData.gender === 'male' ? '男' : previewData.gender === 'female' ? '女' : '未选择'}\n`;
+      previewText += `手机号：${previewData.phone}\n`;
+      previewText += `身高：${previewData.height} cm\n`;
+      previewText += `体重：${previewData.weight} kg\n`;
+      
+      if (previewData.height && previewData.weight) {
+        const bmi = previewData.weight / ((previewData.height / 100) ** 2);
+        previewText += `BMI：${bmi.toFixed(1)} (${getBMIStatus(bmi)})\n`;
+      }
+      
+      previewText += `\n=== 身形信息 ===\n`;
+      previewText += `身形类型：${previewData.bodyType}\n`;
+      previewText += `身形特征：${previewData.bodyFeatures.length > 0 ? previewData.bodyFeatures.join('、') : '无'}\n`;
+      
+      previewText += `\n=== 定制品类 ===\n`;
+      if (selectedCategories.length > 0) {
+        selectedCategories.forEach(category => {
+          previewText += `- ${categoryConfig[category]}\n`;
+        });
+      } else {
+        previewText += `未选择定制品类\n`;
+      }
+      
+      previewText += `\n=== 尺寸数据 ===\n`;
+      Object.keys(previewData.measurements).forEach(category => {
+        previewText += `【${categoryConfig[category]}】\n`;
+        Object.entries(previewData.measurements[category]).forEach(([size, value]) => {
+          previewText += `  ${size}：${value} cm\n`;
+        });
+        previewText += `\n`;
+      });
+      
+      // 显示预览
+      const content = document.getElementById('dataPreviewContent');
+      const modal = document.getElementById('dataPreviewModal');
+      if (content && modal) {
+        content.textContent = previewText;
+        modal.classList.remove('hidden');
+      }
+    }
+
+    // 关闭预览模态框
+    function closePreviewModal() {
+      const modal = document.getElementById('dataPreviewModal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    }
+
+    // 获取BMI状态
+    function getBMIStatus(bmi) {
+      if (bmi < 18.5) return '偏瘦';
+      if (bmi < 24) return '正常';
+      if (bmi < 28) return '偏胖';
+      return '肥胖';
+    }
+
+    // 渲染人员列表
+    function renderPersonList() {
+      const list = document.getElementById('personList');
+      if (!list) return;
+      
+      try {
+        const persons = getAllPersons();
+        
+        if (persons.length === 0) {
+          list.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+              <i class="fa fa-users text-4xl mb-2"></i>
+              <p>暂无量体记录</p>
+              <button onclick="addPerson()" class="btn-primary mt-4">开始量体</button>
+            </div>
+          `;
+          return;
+        }
+        
+        let html = '';
+        
+        // 选择模式下显示全选框
+        if (selectMode) {
+          html += `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this.checked)" 
+                       class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+                <label for="select-all" class="text-sm font-medium text-gray-700">全选</label>
+              </div>
+              <div class="text-sm text-gray-600">
+                已选择 <span id="selected-count" class="font-bold text-primary">${selectedPersonIds.size}</span> 条记录
+              </div>
+            </div>
+          `;
+        }
+        
+        persons.slice().reverse().forEach((person) => {
+          try {
+            const bodyTypeText = getBodyTypeText(person.bodyType, person.gender);
+            const categoriesText = person.categories.map(c => getCategoryName(c)).join('、');
+            // 状态判断：有exportedAt为已导出，否则为待处理
+            const isExported = !!person.exportedAt;
+            const statusClass = isExported ? 'badge-success' : 'badge-warning';
+            const statusText = isExported ? '已导出' : '待处理';
+            const isSelected = selectedPersonIds.has(person.id);
+        
+        html += `
+          <div class="border rounded-lg p-4 hover:shadow-md transition-all animate-fade-in ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                ${selectMode ? `
+                  <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="togglePersonSelect('${person.id}', this.checked)"
+                         class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+                ` : ''}
+                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <i class="fa ${person.gender === 'male' ? 'fa-male' : 'fa-female'} text-primary"></i>
+                </div>
+                <div>
+                  <h4 class="font-medium">${person.name}</h4>
+                  <p class="text-xs text-gray-500">${person.id} · ${person.phone || '未留电话'}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="badge ${statusClass}">${statusText}</span>
+                <div class="text-xs text-gray-500">${formatDate(person.createdAt)}</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+              <div>
+                <p class="text-xs text-gray-500">身形</p>
+                <p class="text-sm">${bodyTypeText || '未判定'}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">定制品类</p>
+                <p class="text-sm">${categoriesText || '未选择'}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">基础数据</p>
+                <p class="text-sm">${person.height}cm / ${person.weight}kg</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+              <div class="flex gap-2">
+                <button onclick="editPerson('${person.id}')" class="btn-secondary text-xs">
+                  <i class="fa fa-edit"></i>
+                  编辑
+                </button>
+                <button onclick="duplicatePerson('${person.id}')" class="btn-secondary text-xs">
+                  <i class="fa fa-copy"></i>
+                  复制
+                </button>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="exportSingleExcel('${person.id}')" class="btn-excel text-xs">
+                  <i class="fa fa-file-excel-o"></i>
+                  导出Excel
+                </button>
+                <button onclick="deletePerson('${person.id}')" class="btn-danger text-xs">
+                  <i class="fa fa-trash"></i>
+                  删除
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+          } catch (personError) {
+            console.error('渲染人员数据时出错:', personError);
+          }
+        });
+        
+        list.innerHTML = html;
+        
+        const totalCount = document.getElementById('total-count');
+        if (totalCount) {
+          totalCount.textContent = persons.length;
+        }
+      } catch (error) {
+        console.error('渲染人员列表时出错:', error);
+        list.innerHTML = `
+          <div class="text-center py-8 text-red-500">
+            <i class="fa fa-exclamation-triangle text-4xl mb-2"></i>
+            <p>加载数据时出错，请刷新页面重试</p>
+          </div>
+        `;
+      }
+    }
+
+    // 切换选择模式
+    function toggleSelectMode() {
+      selectMode = !selectMode;
+      if (!selectMode) {
+        selectedPersonIds.clear();
+      }
+      
+      // 更新按钮显示
+      const selectBtn = document.getElementById('select-mode-btn');
+      const exportBtn = document.getElementById('batch-export-btn');
+      
+      if (selectMode) {
+        selectBtn.innerHTML = '<i class="fa fa-times"></i> 取消选择';
+        selectBtn.classList.remove('btn-secondary');
+        selectBtn.classList.add('btn-danger');
+        exportBtn.classList.remove('hidden');
+      } else {
+        selectBtn.innerHTML = '<i class="fa fa-check-square"></i> 批量选择';
+        selectBtn.classList.remove('btn-danger');
+        selectBtn.classList.add('btn-secondary');
+        exportBtn.classList.add('hidden');
+      }
+      
+      renderPersonList();
+    }
+
+    // 全选/取消全选
+    function toggleSelectAll(checked) {
+      const persons = getAllPersons();
+      if (checked) {
+        persons.forEach(p => selectedPersonIds.add(p.id));
+      } else {
+        selectedPersonIds.clear();
+      }
+      renderPersonList();
+    }
+
+    // 选择/取消选择单个人员
+    function togglePersonSelect(personId, checked) {
+      if (checked) {
+        selectedPersonIds.add(personId);
+      } else {
+        selectedPersonIds.delete(personId);
+      }
+      
+      // 更新选中计数
+      const countEl = document.getElementById('selected-count');
+      if (countEl) {
+        countEl.textContent = selectedPersonIds.size;
+      }
+      
+      // 更新全选框状态
+      const selectAllCheckbox = document.getElementById('select-all');
+      if (selectAllCheckbox) {
+        const persons = getAllPersons();
+        selectAllCheckbox.checked = selectedPersonIds.size === persons.length;
+      }
+      
+      // 更新选中样式
+      const card = event.target.closest('.border');
+      if (card) {
+        if (checked) {
+          card.classList.add('ring-2', 'ring-primary', 'bg-primary/5');
+        } else {
+          card.classList.remove('ring-2', 'ring-primary', 'bg-primary/5');
+        }
+      }
+    }
+
+    // 批量导出Excel
+    function batchExportExcel() {
+      if (selectedPersonIds.size === 0) {
+        showNotification('请先选择要导出的记录', 'warning');
+        return;
+      }
+      
+      const selectedIds = Array.from(selectedPersonIds);
+      const persons = selectedIds.map(id => getPersonById(id)).filter(p => p);
+      
+      if (persons.length === 0) {
+        showNotification('未找到有效的量体记录', 'error');
+        return;
+      }
+      
+      try {
+        // 创建workbook
+        const wb = XLSX.utils.book_new();
+        
+        // 收集所有品类
+        const allCategories = new Set();
+        persons.forEach(person => {
+          (person.categories || []).forEach(cat => allCategories.add(cat));
+        });
+        
+        // 为每个品类创建一个工作表
+        allCategories.forEach(category => {
+          const categoryName = getCategoryName(category);
+          const categoryPersons = persons.filter(p => (p.categories || []).includes(category));
+          
+          if (categoryPersons.length === 0) return;
+          
+          // 创建表头
+          const headers = ['序号', '姓名', '性别', '手机号', '身高(cm)', '体重(kg)', '身形', '身形特征'];
+          
+          // 添加品类对应的尺寸项
+          const sizeItems = sizeData[category] || [];
+          headers.push(...sizeItems);
+          
+          // 如果是高级定制西服，添加定制选项列
+          if (category === 'advancedSuit') {
+            Object.keys(advancedSuitOptions).forEach(key => {
+              headers.push(advancedSuitOptions[key].label);
+            });
+          }
+          
+          // 添加偏好信息
+          headers.push('版型偏好', '面料工艺', '穿着习惯', '备注', '量体日期');
+          
+          // 创建数据行
+          const data = [headers];
+          
+          categoryPersons.forEach((person, index) => {
+            const row = [
+              index + 1,
+              person.name,
+              person.gender === 'male' ? '男' : '女',
+              person.phone || '',
+              person.height || '',
+              person.weight || '',
+              getBodyTypeText(person.bodyType, person.gender) || '',
+              (person.bodyFeatures || []).join('、')
+            ];
+            
+            // 添加尺寸数据
+            const measurements = person.measurements?.[category] || {};
+            sizeItems.forEach(item => {
+              row.push(measurements[item] || '');
+            });
+            
+            // 如果是高级定制西服，添加定制选项数据
+            if (category === 'advancedSuit') {
+              const customOptions = person.customOptions?.[category] || {};
+              Object.keys(advancedSuitOptions).forEach(key => {
+                row.push(customOptions[key] || '');
+              });
+            }
+            
+            // 添加偏好信息
+            row.push(
+              person.preferences?.fit || '',
+              person.preferences?.fabric || '',
+              person.preferences?.habit || '',
+              person.preferences?.notes || '',
+              formatDate(person.createdAt)
+            );
+            
+            data.push(row);
+          });
+          
+          // 创建工作表
+          const ws = XLSX.utils.aoa_to_sheet(data);
+          
+          // 设置列宽
+          const colWidths = headers.map((h, i) => {
+            if (i === 0) return { wch: 6 };
+            if (i === 1) return { wch: 10 };
+            if (i === 2) return { wch: 6 };
+            return { wch: 12 };
+          });
+          ws['!cols'] = colWidths;
+          
+          // 添加到工作簿
+          const sheetName = categoryName.length > 28 ? categoryName.substring(0, 28) : categoryName;
+          XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        });
+        
+        // 生成文件名
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        const fileName = `批量量体数据_${dateStr}.xlsx`;
+        
+        // 导出文件
+        XLSX.writeFile(wb, fileName);
+        
+        // 更新所有选中人员的导出状态
+        persons.forEach(person => {
+          person.exportedAt = new Date().toISOString();
+          savePersonToStorage(person);
+        });
+        
+        // 清除选择并刷新列表
+        selectedPersonIds.clear();
+        selectMode = false;
+        
+        const selectBtn = document.getElementById('select-mode-btn');
+        const exportBtn = document.getElementById('batch-export-btn');
+        if (selectBtn) {
+          selectBtn.innerHTML = '<i class="fa fa-check-square"></i> 批量选择';
+          selectBtn.classList.remove('btn-danger');
+          selectBtn.classList.add('btn-secondary');
+        }
+        if (exportBtn) {
+          exportBtn.classList.add('hidden');
+        }
+        
+        renderPersonList();
+        updateStatistics();
+        
+        showNotification(`成功导出 ${persons.length} 条量体记录`, 'success');
+      } catch (error) {
+        console.error('批量导出失败:', error);
+        showNotification('批量导出失败，请稍后重试', 'error');
+      }
+    }
+
+    // 获取身形文本
+    function getBodyTypeText(bodyType, gender) {
+      if (!bodyType || !gender) return '';
+      const genderConfig = bodyTypeConfig[gender];
+      if (!genderConfig || !genderConfig.types) return bodyType;
+      const type = genderConfig.types.find(t => t.value === bodyType);
+      return type ? type.text : bodyType;
+    }
+
+    // 编辑人员
+    function editPerson(id) {
+      const person = getPersonById(id);
+      if (person) {
+        currentPerson = JSON.parse(JSON.stringify(person)); // 深拷贝
+        renderPersonForm();
+        const container = document.getElementById('personFormContainer');
+        if (container) {
+          container.classList.remove('hidden');
+        }
+      }
+    }
+
+    // 复制人员
+    function duplicatePerson(id) {
+      const person = getPersonById(id);
+      if (person) {
+        const newPerson = JSON.parse(JSON.stringify(person));
+        newPerson.id = `YDT${Date.now().toString().slice(-6)}${personId++}`;
+        newPerson.name = `${person.name} (复制)`;
+        newPerson.createdAt = new Date();
+        newPerson.updatedAt = new Date();
+        delete newPerson.exportedAt; // 复制时清除导出状态
+        
+        savePersonToStorage(newPerson);
+        addToHistory(newPerson);
+        renderPersonList();
+        updateStatistics();
+        showNotification('复制成功', 'success');
+      }
+    }
+
+    // 删除人员
+    function deletePerson(id) {
+      if (confirm('确定要删除这条量体记录吗？')) {
+        deletePersonFromStorage(id);
+        
+        renderPersonList();
+        updateStatistics();
+        updateCharts();
+        showNotification('删除成功', 'success');
+      }
+    }
+
+    // 查看历史详情
+    function viewHistoryDetail(id) {
+      const history = getHistoryById(id);
+      if (!history || !history.records || history.records.length === 0) {
+        showNotification('未找到历史记录', 'error');
+        return;
+      }
+      
+      // 创建详情弹窗
+      let modalHtml = `
+        <div id="history-detail-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="closeHistoryDetailModal(event)">
+          <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold">${history.name} 的量体历史</h2>
+                <p class="text-sm text-gray-500">ID: ${history.id} · 共 ${history.records.length} 次量体记录</p>
+              </div>
+              <button onclick="closeHistoryDetailModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fa fa-times text-xl"></i>
+              </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[70vh]">
+              <div class="space-y-4">
+      `;
+      
+      // 按时间倒序显示记录
+      history.records.slice().reverse().forEach((record, index) => {
+        const categoriesText = record.categories ? record.categories.map(c => getCategoryName(c)).join('、') : '未选择';
+        const bodyTypeText = getBodyTypeText(record.bodyType, history.gender);
+        
+        modalHtml += `
+          <div class="border rounded-lg p-4 ${index === 0 ? 'ring-2 ring-primary bg-primary/5' : ''}">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="badge ${index === 0 ? 'badge-primary' : 'badge-secondary'}">${index === 0 ? '最新' : `第 ${history.records.length - index} 次`}</span>
+                <span class="text-sm text-gray-500">${formatDateTime(record.date)}</span>
+              </div>
+              <span class="text-sm text-gray-600">${record.height || ''}cm / ${record.weight || ''}kg</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+              <div>
+                <p class="text-xs text-gray-500">身形</p>
+                <p class="text-sm font-medium">${bodyTypeText || '未判定'}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">定制品类</p>
+                <p class="text-sm">${categoriesText}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">版型偏好</p>
+                <p class="text-sm">${record.preferences?.fit || '-'}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">备注</p>
+                <p class="text-sm">${record.preferences?.notes || '-'}</p>
+              </div>
+            </div>
+        `;
+        
+        // 显示尺寸数据
+        if (record.measurements && Object.keys(record.measurements).length > 0) {
+          modalHtml += `<div class="mt-3 pt-3 border-t border-gray-100">`;
+          Object.entries(record.measurements).forEach(([category, measurements]) => {
+            const categoryName = getCategoryName(category);
+            const sizeItems = sizeData[category] || [];
+            
+            modalHtml += `
+              <div class="mb-2">
+                <p class="text-xs font-medium text-gray-700 mb-1">${categoryName}尺寸：</p>
+                <div class="flex flex-wrap gap-2">
+            `;
+            
+            sizeItems.forEach(item => {
+              const value = measurements[item];
+              if (value) {
+                modalHtml += `<span class="text-xs bg-gray-100 px-2 py-1 rounded">${item}: ${value}</span>`;
+              }
+            });
+            
+            modalHtml += `</div></div>`;
+          });
+          modalHtml += `</div>`;
+        }
+        
+        modalHtml += `</div>`;
+      });
+      
+      modalHtml += `
+              </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 flex justify-end gap-2">
+              <button onclick="exportHistoryExcel('${history.id}')" class="btn-excel">
+                <i class="fa fa-file-excel-o"></i>
+                导出Excel
+              </button>
+              <button onclick="closeHistoryDetailModal()" class="btn-secondary">
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 添加到页面
+      const existingModal = document.getElementById('history-detail-modal');
+      if (existingModal) existingModal.remove();
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // 关闭历史详情弹窗
+    function closeHistoryDetailModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      const modal = document.getElementById('history-detail-modal');
+      if (modal) modal.remove();
+    }
+
+    // 导出历史记录Excel
+    function exportHistoryExcel(id) {
+      const history = getHistoryById(id);
+      if (!history || !history.records || history.records.length === 0) {
+        showNotification('未找到历史记录', 'error');
+        return;
+      }
+      
+      try {
+        // 创建workbook
+        const wb = XLSX.utils.book_new();
+        
+        // 收集所有品类
+        const allCategories = new Set();
+        history.records.forEach(record => {
+          (record.categories || []).forEach(cat => allCategories.add(cat));
+        });
+        
+        // 为每个品类创建一个工作表
+        allCategories.forEach(category => {
+          const categoryName = getCategoryName(category);
+          const categoryRecords = history.records.filter(r => (r.categories || []).includes(category));
+          
+          if (categoryRecords.length === 0) return;
+          
+          // 创建表头
+          const headers = ['序号', '量体日期', '身高(cm)', '体重(kg)', '身形', '身形特征'];
+          
+          // 添加品类对应的尺寸项
+          const sizeItems = sizeData[category] || [];
+          headers.push(...sizeItems);
+          
+          // 如果是高级定制西服，添加定制选项列
+          if (category === 'advancedSuit') {
+            Object.keys(advancedSuitOptions).forEach(key => {
+              headers.push(advancedSuitOptions[key].label);
+            });
+          }
+          
+          // 添加偏好信息
+          headers.push('版型偏好', '面料工艺', '穿着习惯', '备注');
+          
+          // 创建数据行
+          const data = [headers];
+          
+          categoryRecords.slice().reverse().forEach((record, index) => {
+            const row = [
+              index + 1,
+              formatDateTime(record.date),
+              record.height || '',
+              record.weight || '',
+              getBodyTypeText(record.bodyType, history.gender) || '',
+              (record.bodyFeatures || []).join('、')
+            ];
+            
+            // 添加尺寸数据
+            const measurements = record.measurements?.[category] || {};
+            sizeItems.forEach(item => {
+              row.push(measurements[item] || '');
+            });
+            
+            // 如果是高级定制西服，添加定制选项数据
+            if (category === 'advancedSuit') {
+              const customOptions = record.customOptions?.[category] || {};
+              Object.keys(advancedSuitOptions).forEach(key => {
+                row.push(customOptions[key] || '');
+              });
+            }
+            
+            // 添加偏好信息
+            row.push(
+              record.preferences?.fit || '',
+              record.preferences?.fabric || '',
+              record.preferences?.habit || '',
+              record.preferences?.notes || ''
+            );
+            
+            data.push(row);
+          });
+          
+          // 创建工作表
+          const ws = XLSX.utils.aoa_to_sheet(data);
+          
+          // 设置列宽
+          const colWidths = headers.map((h, i) => {
+            if (i === 0) return { wch: 6 };
+            if (i === 1) return { wch: 18 };
+            return { wch: 12 };
+          });
+          ws['!cols'] = colWidths;
+          
+          // 添加到工作簿
+          const sheetName = categoryName.length > 28 ? categoryName.substring(0, 28) : categoryName;
+          XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        });
+        
+        // 如果没有品类，创建一个基本信息表
+        if (allCategories.size === 0) {
+          const headers = ['序号', '量体日期', '身高(cm)', '体重(kg)', '身形', '身形特征', '版型偏好', '备注'];
+          const data = [headers];
+          
+          history.records.slice().reverse().forEach((record, index) => {
+            data.push([
+              index + 1,
+              formatDateTime(record.date),
+              record.height || '',
+              record.weight || '',
+              getBodyTypeText(record.bodyType, history.gender) || '',
+              (record.bodyFeatures || []).join('、'),
+              record.preferences?.fit || '',
+              record.preferences?.notes || ''
+            ]);
+          });
+          
+          const ws = XLSX.utils.aoa_to_sheet(data);
+          ws['!cols'] = headers.map((h, i) => ({ wch: i === 0 ? 6 : 12 }));
+          XLSX.utils.book_append_sheet(wb, ws, '量体记录');
+        }
+        
+        // 生成文件名
+        const fileName = `${history.name}_量体历史.xlsx`;
+        
+        // 导出文件
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification('Excel导出成功', 'success');
+      } catch (error) {
+        console.error('导出历史记录失败:', error);
+        showNotification('导出失败，请稍后重试', 'error');
+      }
+    }
+
+    // 删除历史记录
+    function deleteHistory(id) {
+      if (confirm('确定要删除这条历史记录吗？')) {
+        deleteHistoryFromStorage(id);
+        renderHistoryList();
+        showNotification('历史记录已删除', 'success');
+      }
+    }
+
+    // 渲染历史列表
+    function renderHistoryList() {
+      const list = document.getElementById('history-list');
+      if (!list) return;
+      
+      try {
+        const history = getAllHistory();
+        
+        // 更新总数显示
+        const totalCountEl = document.getElementById('history-total-count');
+        if (totalCountEl) {
+          totalCountEl.textContent = `共 ${history.length} 条记录`;
+        }
+        
+        if (history.length === 0) {
+          list.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+              <i class="fa fa-history text-4xl mb-2"></i>
+              <p>暂无历史记录</p>
+            </div>
+          `;
+          return;
+        }
+        
+        let html = '';
+        
+        // 选择模式下显示全选框
+        if (historySelectMode) {
+          html += `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" id="history-select-all" onchange="toggleHistorySelectAll(this.checked)" 
+                       class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+                <label for="history-select-all" class="text-sm font-medium text-gray-700">全选</label>
+              </div>
+              <div class="text-sm text-gray-600">
+                已选择 <span id="history-selected-count" class="font-bold text-primary">${selectedHistoryIds.size}</span> 条记录
+              </div>
+            </div>
+          `;
+        }
+        
+        history.forEach((record) => {
+          try {
+            if (!record.records || record.records.length === 0) return;
+            
+            const latest = record.records[record.records.length - 1];
+            const bodyTypeText = getBodyTypeText(latest.bodyType, record.gender);
+            const categoriesText = latest.categories ? latest.categories.map(c => getCategoryName(c)).join('、') : '未选择';
+            const isSelected = selectedHistoryIds.has(record.id);
+            
+            html += `
+              <div class="border rounded-lg p-4 hover:shadow-md transition-all ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    ${historySelectMode ? `
+                      <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleHistorySelect('${record.id}', this.checked)"
+                             class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+                    ` : ''}
+                    <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <i class="fa ${record.gender === 'male' ? 'fa-male' : 'fa-female'} text-primary"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-medium">${record.name}</h4>
+                      <p class="text-xs text-gray-500">${record.id} · 共${record.records.length}次量体</p>
+                    </div>
+                  </div>
+                  <div class="text-xs text-gray-500">最近：${formatDate(latest.date)}</div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                  <div>
+                    <p class="text-xs text-gray-500">最新身形</p>
+                    <p class="text-sm">${bodyTypeText || '未判定'}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500">基础数据</p>
+                    <p class="text-sm">${latest.height || ''}cm / ${latest.weight || ''}kg</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500">定制品类</p>
+                    <p class="text-sm">${categoriesText}</p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                  <div class="flex gap-2">
+                    <button onclick="viewHistoryDetail('${record.id}')" class="btn-secondary text-xs">
+                      <i class="fa fa-eye"></i>
+                      查看详情
+                    </button>
+                    <button onclick="exportHistoryExcel('${record.id}')" class="btn-excel text-xs">
+                      <i class="fa fa-file-excel-o"></i>
+                      导出Excel
+                    </button>
+                  </div>
+                  <button onclick="deleteHistory('${record.id}')" class="btn-danger text-xs">
+                    <i class="fa fa-trash"></i>
+                    删除
+                  </button>
+                </div>
+              </div>
+            `;
+          } catch (recordError) {
+            console.error('渲染历史记录时出错:', recordError);
+          }
+        });
+        
+        list.innerHTML = html || `
+          <div class="text-center py-8 text-gray-500">
+            <i class="fa fa-history text-4xl mb-2"></i>
+            <p>暂无有效历史记录</p>
+          </div>
+        `;
+      } catch (error) {
+        console.error('渲染历史列表时出错:', error);
+        list.innerHTML = `
+          <div class="text-center py-8 text-red-500">
+            <i class="fa fa-exclamation-triangle text-4xl mb-2"></i>
+            <p>加载历史记录时出错，请刷新页面重试</p>
+          </div>
+        `;
+      }
+    }
+
+    // 切换历史记录选择模式
+    function toggleHistorySelectMode() {
+      historySelectMode = !historySelectMode;
+      if (!historySelectMode) {
+        selectedHistoryIds.clear();
+      }
+      
+      // 更新按钮显示
+      const selectBtn = document.getElementById('history-select-mode-btn');
+      const exportBtn = document.getElementById('history-batch-export-btn');
+      const deleteBtn = document.getElementById('history-batch-delete-btn');
+      
+      if (historySelectMode) {
+        selectBtn.innerHTML = '<i class="fa fa-times"></i> 取消选择';
+        selectBtn.classList.remove('btn-secondary');
+        selectBtn.classList.add('btn-danger');
+        exportBtn.classList.remove('hidden');
+        deleteBtn.classList.remove('hidden');
+      } else {
+        selectBtn.innerHTML = '<i class="fa fa-check-square"></i> 批量选择';
+        selectBtn.classList.remove('btn-danger');
+        selectBtn.classList.add('btn-secondary');
+        exportBtn.classList.add('hidden');
+        deleteBtn.classList.add('hidden');
+      }
+      
+      renderHistoryList();
+    }
+
+    // 全选/取消全选历史记录
+    function toggleHistorySelectAll(checked) {
+      const history = getAllHistory();
+      if (checked) {
+        history.forEach(h => selectedHistoryIds.add(h.id));
+      } else {
+        selectedHistoryIds.clear();
+      }
+      renderHistoryList();
+    }
+
+    // 选择/取消选择单条历史记录
+    function toggleHistorySelect(historyId, checked) {
+      if (checked) {
+        selectedHistoryIds.add(historyId);
+      } else {
+        selectedHistoryIds.delete(historyId);
+      }
+      
+      // 更新选中计数
+      const countEl = document.getElementById('history-selected-count');
+      if (countEl) {
+        countEl.textContent = selectedHistoryIds.size;
+      }
+      
+      // 更新全选框状态
+      const selectAllCheckbox = document.getElementById('history-select-all');
+      if (selectAllCheckbox) {
+        const history = getAllHistory();
+        selectAllCheckbox.checked = selectedHistoryIds.size === history.length;
+      }
+      
+      // 更新选中样式
+      const card = event.target.closest('.border');
+      if (card) {
+        if (checked) {
+          card.classList.add('ring-2', 'ring-primary', 'bg-primary/5');
+        } else {
+          card.classList.remove('ring-2', 'ring-primary', 'bg-primary/5');
+        }
+      }
+    }
+
+    // 批量导出历史记录Excel
+    function batchExportHistoryExcel() {
+      if (selectedHistoryIds.size === 0) {
+        showNotification('请先选择要导出的记录', 'warning');
+        return;
+      }
+      
+      const selectedIds = Array.from(selectedHistoryIds);
+      const histories = selectedIds.map(id => getHistoryById(id)).filter(h => h);
+      
+      if (histories.length === 0) {
+        showNotification('未找到有效的历史记录', 'error');
+        return;
+      }
+      
+      try {
+        // 创建workbook
+        const wb = XLSX.utils.book_new();
+        
+        // 为每个客户创建一个工作表
+        histories.forEach((history, historyIndex) => {
+          if (!history.records || history.records.length === 0) return;
+          
+          // 收集所有品类
+          const allCategories = new Set();
+          history.records.forEach(record => {
+            (record.categories || []).forEach(cat => allCategories.add(cat));
+          });
+          
+          // 创建表头
+          const headers = ['序号', '量体日期', '身高(cm)', '体重(kg)', '身形', '身形特征'];
+          
+          // 收集所有尺寸项
+          const allSizeItems = [];
+          allCategories.forEach(category => {
+            const sizeItems = sizeData[category] || [];
+            sizeItems.forEach(item => {
+              if (!allSizeItems.includes(item)) {
+                allSizeItems.push(item);
+              }
+            });
+          });
+          headers.push(...allSizeItems);
+          
+          // 如果包含高级定制西服，添加定制选项列
+          const hasAdvancedSuit = allCategories.has('advancedSuit');
+          if (hasAdvancedSuit) {
+            Object.keys(advancedSuitOptions).forEach(key => {
+              headers.push(advancedSuitOptions[key].label);
+            });
+          }
+          
+          // 添加偏好信息
+          headers.push('版型偏好', '面料工艺', '穿着习惯', '备注');
+          
+          // 创建数据行
+          const data = [headers];
+          
+          history.records.slice().reverse().forEach((record, index) => {
+            const row = [
+              index + 1,
+              formatDateTime(record.date),
+              record.height || '',
+              record.weight || '',
+              getBodyTypeText(record.bodyType, history.gender) || '',
+              (record.bodyFeatures || []).join('、')
+            ];
+            
+            // 添加尺寸数据
+            allSizeItems.forEach(item => {
+              let value = '';
+              // 在所有品类中查找该尺寸项
+              for (const category of allCategories) {
+                const measurements = record.measurements?.[category] || {};
+                if (measurements[item]) {
+                  value = measurements[item];
+                  break;
+                }
+              }
+              row.push(value);
+            });
+            
+            // 如果包含高级定制西服，添加定制选项数据
+            if (hasAdvancedSuit) {
+              const customOptions = record.customOptions?.['advancedSuit'] || {};
+              Object.keys(advancedSuitOptions).forEach(key => {
+                row.push(customOptions[key] || '');
+              });
+            }
+            
+            // 添加偏好信息
+            row.push(
+              record.preferences?.fit || '',
+              record.preferences?.fabric || '',
+              record.preferences?.habit || '',
+              record.preferences?.notes || ''
+            );
+            
+            data.push(row);
+          });
+          
+          // 创建工作表
+          const ws = XLSX.utils.aoa_to_sheet(data);
+          
+          // 设置列宽
+          const colWidths = headers.map((h, i) => {
+            if (i === 0) return { wch: 6 };
+            if (i === 1) return { wch: 18 };
+            return { wch: 12 };
+          });
+          ws['!cols'] = colWidths;
+          
+          // 添加到工作簿（限制工作表名称长度）
+          let sheetName = history.name;
+          if (sheetName.length > 28) {
+            sheetName = sheetName.substring(0, 28);
+          }
+          // 如果有重名，添加序号
+          const existingNames = wb.SheetNames;
+          let finalName = sheetName;
+          let counter = 1;
+          while (existingNames.includes(finalName)) {
+            const suffix = `_${counter}`;
+            finalName = sheetName.substring(0, 28 - suffix.length) + suffix;
+            counter++;
+          }
+          
+          XLSX.utils.book_append_sheet(wb, ws, finalName);
+        });
+        
+        // 生成文件名
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        const fileName = `批量历史记录_${dateStr}.xlsx`;
+        
+        // 导出文件
+        XLSX.writeFile(wb, fileName);
+        
+        // 清除选择并刷新列表
+        selectedHistoryIds.clear();
+        historySelectMode = false;
+        
+        const selectBtn = document.getElementById('history-select-mode-btn');
+        const exportBtn = document.getElementById('history-batch-export-btn');
+        const deleteBtn = document.getElementById('history-batch-delete-btn');
+        
+        if (selectBtn) {
+          selectBtn.innerHTML = '<i class="fa fa-check-square"></i> 批量选择';
+          selectBtn.classList.remove('btn-danger');
+          selectBtn.classList.add('btn-secondary');
+        }
+        if (exportBtn) exportBtn.classList.add('hidden');
+        if (deleteBtn) deleteBtn.classList.add('hidden');
+        
+        renderHistoryList();
+        
+        showNotification(`成功导出 ${histories.length} 条历史记录`, 'success');
+      } catch (error) {
+        console.error('批量导出历史记录失败:', error);
+        showNotification('批量导出失败，请稍后重试', 'error');
+      }
+    }
+
+    // 批量删除历史记录
+    function batchDeleteHistory() {
+      if (selectedHistoryIds.size === 0) {
+        showNotification('请先选择要删除的记录', 'warning');
+        return;
+      }
+      
+      if (!confirm(`确定要删除选中的 ${selectedHistoryIds.size} 条历史记录吗？此操作不可恢复！`)) {
+        return;
+      }
+      
+      try {
+        const selectedIds = Array.from(selectedHistoryIds);
+        let successCount = 0;
+        
+        selectedIds.forEach(id => {
+          try {
+            deleteHistoryFromStorage(id);
+            successCount++;
+          } catch (error) {
+            console.error(`删除历史记录 ${id} 失败:`, error);
+          }
+        });
+        
+        // 清除选择并刷新列表
+        selectedHistoryIds.clear();
+        historySelectMode = false;
+        
+        const selectBtn = document.getElementById('history-select-mode-btn');
+        const exportBtn = document.getElementById('history-batch-export-btn');
+        const deleteBtn = document.getElementById('history-batch-delete-btn');
+        
+        if (selectBtn) {
+          selectBtn.innerHTML = '<i class="fa fa-check-square"></i> 批量选择';
+          selectBtn.classList.remove('btn-danger');
+          selectBtn.classList.add('btn-secondary');
+        }
+        if (exportBtn) exportBtn.classList.add('hidden');
+        if (deleteBtn) deleteBtn.classList.add('hidden');
+        
+        renderHistoryList();
+        updateStatistics();
+        updateCharts();
+        
+        showNotification(`成功删除 ${successCount} 条历史记录`, 'success');
+      } catch (error) {
+        console.error('批量删除历史记录失败:', error);
+        showNotification('批量删除失败，请稍后重试', 'error');
+      }
+    }
+
+    // 搜索客户
+    function searchPerson(keyword) {
+      // 自动跳转到量体管理页面
+      switchPage('measurements');
+      
+      const persons = getAllPersons();
+      
+      if (!keyword.trim()) {
+        renderPersonList();
+        return;
+      }
+      
+      const filtered = persons.filter(person => 
+        person.name.toLowerCase().includes(keyword.toLowerCase()) ||
+        person.id.toLowerCase().includes(keyword.toLowerCase()) ||
+        (person.phone && person.phone.includes(keyword))
+      );
+      
+      renderFilteredPersonList(filtered);
+    }
+    
+    // 筛选客户列表
+    function filterPersonList() {
+      const dateStart = document.getElementById('filter-date-start')?.value || '';
+      const dateEnd = document.getElementById('filter-date-end')?.value || '';
+      const genderFilter = document.getElementById('filter-gender')?.value || 'all';
+      const statusFilter = document.getElementById('filter-status')?.value || 'all';
+      
+      const persons = getAllPersons();
+      
+      const filtered = persons.filter(person => {
+        // 日期范围筛选
+        if (dateStart || dateEnd) {
+          const personDate = new Date(person.createdAt);
+          personDate.setHours(0, 0, 0, 0);
+          
+          if (dateStart) {
+            const startDate = new Date(dateStart);
+            startDate.setHours(0, 0, 0, 0);
+            if (personDate < startDate) return false;
+          }
+          
+          if (dateEnd) {
+            const endDate = new Date(dateEnd);
+            endDate.setHours(23, 59, 59, 999);
+            if (personDate > endDate) return false;
+          }
+        }
+        
+        // 性别筛选
+        if (genderFilter !== 'all' && person.gender !== genderFilter) {
+          return false;
+        }
+        
+        // 状态筛选（基于exportedAt字段）
+        if (statusFilter !== 'all') {
+          const isExported = !!person.exportedAt;
+          if (statusFilter === 'pending' && isExported) return false;
+          if (statusFilter === 'exported' && !isExported) return false;
+        }
+        
+        return true;
+      });
+      
+      renderFilteredPersonList(filtered);
+    }
+    
+    // 渲染筛选后的客户列表
+    function renderFilteredPersonList(filteredPersons) {
+      const list = document.getElementById('personList');
+      if (!list) return;
+      
+      if (filteredPersons.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i class="fa fa-search text-4xl mb-2"></i>
+            <p>未找到符合条件的记录</p>
+          </div>
+        `;
+        const totalCount = document.getElementById('total-count');
+        if (totalCount) totalCount.textContent = '0';
+        return;
+      }
+      
+      let html = '';
+      
+      // 选择模式下显示全选框
+      if (selectMode) {
+        html += `
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="select-all-filtered" onchange="toggleSelectAllFiltered(this.checked, '${filteredPersons.map(p => p.id).join(',')}')" 
+                     class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+              <label for="select-all-filtered" class="text-sm font-medium text-gray-700">全选</label>
+            </div>
+            <div class="text-sm text-gray-600">
+              已选择 <span id="selected-count" class="font-bold text-primary">${selectedPersonIds.size}</span> 条记录
+            </div>
+          </div>
+        `;
+      }
+      
+      filteredPersons.forEach((person) => {
+        try {
+          const bodyTypeText = getBodyTypeText(person.bodyType, person.gender);
+          const categoriesText = (person.categories || []).map(c => getCategoryName(c)).join('、');
+          const isExported = !!person.exportedAt;
+          const statusClass = isExported ? 'badge-success' : 'badge-warning';
+          const statusText = isExported ? '已导出' : '待处理';
+          const isSelected = selectedPersonIds.has(person.id);
+          
+          html += `
+            <div class="border rounded-lg p-4 hover:shadow-md transition-all animate-fade-in ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  ${selectMode ? `
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="togglePersonSelect('${person.id}', this.checked)"
+                           class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+                  ` : ''}
+                  <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <i class="fa ${person.gender === 'male' ? 'fa-male' : 'fa-female'} text-primary"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-medium">${person.name}</h4>
+                    <p class="text-xs text-gray-500">${person.id} · ${person.phone || '未留电话'}</p>
+                  </div>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="badge ${statusClass}">${statusText}</span>
+                  <div class="text-xs text-gray-500 whitespace-nowrap">${formatDate(person.createdAt)}</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                <div>
+                  <p class="text-xs text-gray-500">身形</p>
+                  <p class="text-sm">${bodyTypeText || '未判定'}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">定制品类</p>
+                  <p class="text-sm">${categoriesText || '未选择'}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">基础数据</p>
+                  <p class="text-sm">${person.height}cm / ${person.weight}kg</p>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                <div class="flex gap-2">
+                  <button onclick="editPerson('${person.id}')" class="btn-secondary btn-sm">
+                    <i class="fa fa-edit"></i>
+                    编辑
+                  </button>
+                  <button onclick="duplicatePerson('${person.id}')" class="btn-secondary btn-sm">
+                    <i class="fa fa-copy"></i>
+                    复制
+                  </button>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="exportSingleExcel('${person.id}')" class="btn-excel btn-sm">
+                    <i class="fa fa-file-excel-o"></i>
+                    导出
+                  </button>
+                  <button onclick="deletePerson('${person.id}')" class="btn-danger btn-sm">
+                    <i class="fa fa-trash"></i>
+                    删除
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        } catch (personError) {
+          console.error('渲染人员数据时出错:', personError);
+        }
+      });
+      
+      list.innerHTML = html;
+      const totalCount = document.getElementById('total-count');
+      if (totalCount) totalCount.textContent = filteredPersons.length;
+    }
+
+    // 全选筛选后的记录
+    function toggleSelectAllFiltered(checked, idsStr) {
+      const ids = idsStr.split(',');
+      if (checked) {
+        ids.forEach(id => selectedPersonIds.add(id));
+      } else {
+        ids.forEach(id => selectedPersonIds.delete(id));
+      }
+      
+      // 重新渲染当前筛选列表
+      filterPersonList();
+    }
+
+    // 搜索历史
+    function searchHistory(keyword) {
+      const list = document.getElementById('history-list');
+      if (!list) return;
+      
+      const history = getAllHistory();
+      
+      if (!keyword.trim()) {
+        renderHistoryList();
+        return;
+      }
+      
+      const filtered = history.filter(record => 
+        record.name.toLowerCase().includes(keyword.toLowerCase()) ||
+        record.id.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      // 更新总数显示
+      const totalCountEl = document.getElementById('history-total-count');
+      if (totalCountEl) {
+        totalCountEl.textContent = `共 ${filtered.length} 条记录`;
+      }
+      
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i class="fa fa-search text-4xl mb-2"></i>
+            <p>未找到相关记录</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 使用完整的渲染逻辑
+      renderFilteredHistoryList(filtered);
+    }
+
+    // 渲染筛选后的历史记录列表
+    function renderFilteredHistoryList(filteredHistory) {
+      const list = document.getElementById('history-list');
+      if (!list) return;
+      
+      let html = '';
+      
+      // 选择模式下显示全选框
+      if (historySelectMode) {
+        html += `
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="history-select-all-filtered" onchange="toggleHistorySelectAllFiltered(this.checked, '${filteredHistory.map(h => h.id).join(',')}')" 
+                     class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+              <label for="history-select-all-filtered" class="text-sm font-medium text-gray-700">全选</label>
+            </div>
+            <div class="text-sm text-gray-600">
+              已选择 <span id="history-selected-count" class="font-bold text-primary">${selectedHistoryIds.size}</span> 条记录
+            </div>
+          </div>
+        `;
+      }
+      
+      filteredHistory.forEach((record) => {
+        try {
+          if (!record.records || record.records.length === 0) return;
+          
+          const latest = record.records[record.records.length - 1];
+          const bodyTypeText = getBodyTypeText(latest.bodyType, record.gender);
+          const categoriesText = latest.categories ? latest.categories.map(c => getCategoryName(c)).join('、') : '未选择';
+          const isSelected = selectedHistoryIds.has(record.id);
+          
+          html += `
+            <div class="border rounded-lg p-4 hover:shadow-md transition-all ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  ${historySelectMode ? `
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleHistorySelect('${record.id}', this.checked)"
+                           class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
+                  ` : ''}
+                  <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <i class="fa ${record.gender === 'male' ? 'fa-male' : 'fa-female'} text-primary"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-medium">${record.name}</h4>
+                    <p class="text-xs text-gray-500">${record.id} · 共${record.records.length}次量体</p>
+                  </div>
+                </div>
+                <div class="text-xs text-gray-500">最近：${formatDate(latest.date)}</div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                <div>
+                  <p class="text-xs text-gray-500">最新身形</p>
+                  <p class="text-sm">${bodyTypeText || '未判定'}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">基础数据</p>
+                  <p class="text-sm">${latest.height || ''}cm / ${latest.weight || ''}kg</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">定制品类</p>
+                  <p class="text-sm">${categoriesText}</p>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                <div class="flex gap-2">
+                  <button onclick="viewHistoryDetail('${record.id}')" class="btn-secondary text-xs">
+                    <i class="fa fa-eye"></i>
+                    查看详情
+                  </button>
+                  <button onclick="exportHistoryExcel('${record.id}')" class="btn-excel text-xs">
+                    <i class="fa fa-file-excel-o"></i>
+                    导出Excel
+                  </button>
+                </div>
+                <button onclick="deleteHistory('${record.id}')" class="btn-danger text-xs">
+                  <i class="fa fa-trash"></i>
+                  删除
+                </button>
+              </div>
+            </div>
+          `;
+        } catch (recordError) {
+          console.error('渲染历史记录时出错:', recordError);
+        }
+      });
+      
+      list.innerHTML = html || `
+        <div class="text-center py-8 text-gray-500">
+          <i class="fa fa-history text-4xl mb-2"></i>
+          <p>暂无有效历史记录</p>
+        </div>
+      `;
+    }
+
+    // 全选筛选后的历史记录
+    function toggleHistorySelectAllFiltered(checked, idsStr) {
+      const ids = idsStr.split(',');
+      if (checked) {
+        ids.forEach(id => selectedHistoryIds.add(id));
+      } else {
+        ids.forEach(id => selectedHistoryIds.delete(id));
+      }
+      
+      // 重新渲染当前筛选列表
+      const keyword = document.getElementById('history-search')?.value || '';
+      if (keyword.trim()) {
+        searchHistory(keyword);
+      } else {
+        const gender = document.getElementById('history-gender-filter')?.value || 'all';
+        filterHistory(gender);
+      }
+    }
+
+    // 筛选历史
+    function filterHistory(gender) {
+      const list = document.getElementById('history-list');
+      if (!list) return;
+      
+      const history = getAllHistory();
+      
+      if (gender === 'all') {
+        renderHistoryList();
+        return;
+      }
+      
+      const filtered = history.filter(record => record.gender === gender);
+      
+      // 更新总数显示
+      const totalCountEl = document.getElementById('history-total-count');
+      if (totalCountEl) {
+        totalCountEl.textContent = `共 ${filtered.length} 条记录`;
+      }
+      
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i class="fa fa-users text-4xl mb-2"></i>
+            <p>暂无${gender === 'male' ? '男' : '女'}客户记录</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 使用完整的渲染逻辑
+      renderFilteredHistoryList(filtered);
+    }
+
+    // 更新统计数据
+    function updateStatistics() {
+      const persons = getAllPersons();
+      const today = new Date().toDateString();
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      
+      const todayCount = persons.filter(p => new Date(p.createdAt).toDateString() === today).length;
+      const weekCount = persons.filter(p => new Date(p.createdAt) >= weekStart).length;
+      // 待处理 = 没有导出记录
+      const pendingCount = persons.filter(p => !p.exportedAt).length;
+      // 导出率 = 已导出数量 / 总数量
+      const exportRate = persons.length > 0 ? 
+        Math.round((persons.filter(p => p.exportedAt).length / persons.length) * 100) : 0;
+      
+      const todayCountEl = document.getElementById('today-count');
+      const weekCountEl = document.getElementById('week-count');
+      const pendingCountEl = document.getElementById('pending-count');
+      const exportRateEl = document.getElementById('completion-rate');
+      
+      if (todayCountEl) todayCountEl.textContent = todayCount;
+      if (weekCountEl) weekCountEl.textContent = weekCount;
+      if (pendingCountEl) pendingCountEl.textContent = pendingCount;
+      if (exportRateEl) exportRateEl.textContent = exportRate + '%';
+      
+      // 更新最近量体表格
+      updateRecentTable(persons.slice(-5).reverse());
+    }
+
+    // 更新最近量体表格
+    function updateRecentTable(persons) {
+      const tbody = document.getElementById('recent-table');
+      if (!tbody) return;
+      
+      if (persons.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">暂无数据</td></tr>';
+        return;
+      }
+      
+      let html = '';
+      persons.forEach(person => {
+        const bodyTypeText = getBodyTypeText(person.bodyType, person.gender);
+        const categoriesText = person.categories.map(c => getCategoryName(c)).join('、');
+        // 状态判断：有exportedAt为已导出，否则为待处理
+        const isExported = !!person.exportedAt;
+        const statusClass = isExported ? 'text-green-600' : 'text-yellow-600';
+        const statusText = isExported ? '已导出' : '待处理';
+        
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50">
+            <td class="px-2 md:px-4 py-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fa ${person.gender === 'male' ? 'fa-male' : 'fa-female'} text-primary text-xs"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="font-medium text-sm truncate">${person.name}</p>
+                  <p class="text-xs text-gray-500">${person.id}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-2 md:px-4 py-3 text-sm hidden sm:table-cell">${bodyTypeText || '未判定'}</td>
+            <td class="px-2 md:px-4 py-3 text-sm">
+              <span class="truncate max-w-[80px] md:max-w-[120px] inline-block">${categoriesText || '未选择'}</span>
+            </td>
+            <td class="px-2 md:px-4 py-3">
+              <span class="badge ${statusClass === 'text-green-600' ? 'badge-success' : 'badge-warning'}">
+                ${statusText}
+              </span>
+            </td>
+            <td class="px-2 md:px-4 py-3">
+              <button onclick="editPerson('${person.id}')" class="text-primary hover:text-primary/80 p-1">
+                <i class="fa fa-edit"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+    }
+
+    // 更新图表
+    function updateCharts() {
+      updateBodyTypeChart('week');
+      updateTrendChart();
+      updateGenderChart();
+      updateCategoryChart();
+      updateBodyDistChart();
+    }
+
+    // 更新所有图表
+    function updateAllCharts(period) {
+      updateBodyTypeChart(period);
+      updateTrendChart(period);
+      updateGenderChart(period);
+      updateCategoryChart(period);
+      updateBodyDistChart(period);
+    }
+
+    // 更新身形分布图表
+    function updateBodyTypeChart(period) {
+      const ctx = document.getElementById('bodyTypeChart');
+      if (!ctx) return;
+      
+      // 销毁旧图表
+      if (charts.bodyTypeChart) {
+        charts.bodyTypeChart.destroy();
+      }
+      
+      const persons = getPersonsByPeriod(period);
+      
+      const bodyTypeCounts = {};
+      persons.forEach(person => {
+        if (person.bodyType) {
+          bodyTypeCounts[person.bodyType] = (bodyTypeCounts[person.bodyType] || 0) + 1;
+        }
+      });
+      
+      const labels = Object.keys(bodyTypeCounts);
+      const data = Object.values(bodyTypeCounts);
+      
+      charts.bodyTypeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    // 更新趋势图表
+    function updateTrendChart(period = 'week') {
+      const ctx = document.getElementById('trendChart');
+      if (!ctx) return;
+      
+      // 销毁旧图表
+      if (charts.trendChart) {
+        charts.trendChart.destroy();
+      }
+      
+      const persons = getPersonsByPeriod(period);
+      
+      const dailyCounts = {};
+      const days = getDaysInPeriod(period);
+      
+      days.forEach(day => {
+        dailyCounts[day] = 0;
+      });
+      
+      persons.forEach(person => {
+        const date = new Date(person.createdAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+        dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+      });
+      
+      charts.trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Object.keys(dailyCounts),
+          datasets: [{
+            label: '量体数量',
+            data: Object.values(dailyCounts),
+            borderColor: '#165DFF',
+            backgroundColor: 'rgba(22, 93, 255, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // 更新性别分布图表
+    function updateGenderChart(period = 'week') {
+      const ctx = document.getElementById('genderChart');
+      if (!ctx) return;
+      
+      // 销毁旧图表
+      if (charts.genderChart) {
+        charts.genderChart.destroy();
+      }
+      
+      const persons = getPersonsByPeriod(period);
+      
+      const genderCounts = { male: 0, female: 0 };
+      persons.forEach(person => {
+        if (person.gender) {
+          genderCounts[person.gender]++;
+        }
+      });
+      
+      charts.genderChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['男', '女'],
+          datasets: [{
+            data: [genderCounts.male, genderCounts.female],
+            backgroundColor: ['#3B82F6', '#EC4899'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    // 更新品类偏好图表
+    function updateCategoryChart(period = 'week') {
+      const ctx = document.getElementById('categoryChart');
+      if (!ctx) return;
+      
+      // 销毁旧图表
+      if (charts.categoryChart) {
+        charts.categoryChart.destroy();
+      }
+      
+      const persons = getPersonsByPeriod(period);
+      
+      const categoryCounts = {};
+      persons.forEach(person => {
+        person.categories.forEach(category => {
+          categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        });
+      });
+      
+      const labels = Object.keys(categoryCounts).map(key => categoryConfig[key]);
+      const data = Object.values(categoryCounts);
+      
+      charts.categoryChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '定制数量',
+            data: data,
+            backgroundColor: ['#3B82F6', '#EC4899', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#6B7280', '#14B8A6'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // 更新身形分布图表
+    function updateBodyDistChart(period = 'week') {
+      const ctx = document.getElementById('bodyDistChart');
+      if (!ctx) return;
+      
+      // 销毁旧图表
+      if (charts.bodyDistChart) {
+        charts.bodyDistChart.destroy();
+      }
+      
+      const persons = getPersonsByPeriod(period);
+      
+      const bodyTypeCounts = {};
+      persons.forEach(person => {
+        if (person.bodyType) {
+          bodyTypeCounts[person.bodyType] = (bodyTypeCounts[person.bodyType] || 0) + 1;
+        }
+      });
+      
+      const labels = Object.keys(bodyTypeCounts).map(key => {
+        const maleType = bodyTypeConfig.male?.types?.find(t => t.value === key);
+        const femaleType = bodyTypeConfig.female?.types?.find(t => t.value === key);
+        const type = maleType || femaleType;
+        return type ? type.text : key;
+      });
+      
+      const data = Object.values(bodyTypeCounts);
+      
+      charts.bodyDistChart = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(236, 72, 153, 0.6)', 'rgba(16, 185, 129, 0.6)', 'rgba(245, 158, 11, 0.6)', 'rgba(139, 92, 246, 0.6)']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    // 根据时间段获取人员
+    function getPersonsByPeriod(period) {
+      const persons = getAllPersons();
+      const now = new Date();
+      let startDate = new Date();
+      
+      switch(period) {
+        case 'week':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'quarter':
+          startDate.setMonth(now.getMonth() - 3);
+          break;
+        case 'year':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+        case 'all':
+          return persons;
+      }
+      
+      return persons.filter(p => new Date(p.createdAt) >= startDate);
+    }
+
+    // 获取时间段内的天数
+    function getDaysInPeriod(period) {
+      const days = [];
+      const now = new Date();
+      let daysCount = 7;
+      
+      switch(period) {
+        case 'week': daysCount = 7; break;
+        case 'month': daysCount = 30; break;
+        case 'quarter': daysCount = 90; break;
+        case 'year': daysCount = 365; break;
+      }
+      
+      for (let i = daysCount - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        days.push(date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }));
+      }
+      
+      return days;
+    }
+
+    // 导出单个Excel
+    function exportSingleExcel(personId) {
+      const person = getPersonById(personId);
+      if (!person) return;
+      
+      try {
+        // 创建workbook
+        const wb = XLSX.utils.book_new();
+        
+        // A4纸打印优化设置 - 窄边距、横向打印、所有列打印在一页
+        // 注意：xlsx-js-style库对页面设置(!pageSetup)的支持有限
+        // 这些设置在Excel中打开后需要手动调整：页面布局 -> 纸张方向 -> 横向
+        // 打印设置：页面布局 -> 调整为 -> 将所有列打印在一页
+        const printSettings = {
+          '!pageSetup': {
+            paperSize: 9,        // A4纸张 (9 = A4)
+            orientation: 'landscape',  // 横向打印
+            fitToWidth: 1,       // 宽度适应1页 (将所有列打印在一页)
+            fitToHeight: 0,      // 高度自动 (0 = 自动分页)
+            scale: 100           // 缩放比例100%
+          },
+          '!margins': {
+            left: 0.25,          // 左边距(英寸) - 窄边距
+            right: 0.25,         // 右边距
+            top: 0.25,           // 上边距
+            bottom: 0.25,        // 下边距
+            header: 0.2,         // 页眉
+            footer: 0.2          // 页脚
+          }
+        };
+        
+        // ========== 打印版sheet（A4自适应优化）==========
+        const printData = [];
+        
+        // 标题行
+        printData.push(['德会时装定制 - 量体数据单']);
+        
+        // 基础信息区块 - 使用8列布局，更灵活
+        printData.push(['【基础信息】']);
+        printData.push(['客户ID', person.id, '姓名', person.name, '性别', person.gender === 'male' ? '男' : '女', '手机号', person.phone || '']);
+        printData.push(['身高', (person.height || '') + ' cm', '体重', (person.weight || '') + ' kg', '身形', getBodyTypeText(person.bodyType, person.gender), '身形特征', person.bodyFeatures ? person.bodyFeatures.join('、') : '']);
+        printData.push(['定制品类', person.categories ? person.categories.map(c => getCategoryName(c)).join('、') : '', '', '', '', '', '', '']);
+        printData.push(['创建时间', formatDateTime(person.createdAt), '更新时间', formatDateTime(person.updatedAt), '', '', '', '']);
+        
+        // 各品类尺寸数据 - 自适应列数
+        if (person.categories && person.categories.length > 0) {
+          person.categories.forEach(category => {
+            const categoryName = getCategoryName(category);
+            const measurements = person.measurements[category] || {};
+            
+            if (Object.keys(measurements).length > 0) {
+              printData.push([`【${categoryName}】`]);
+              
+              // 将尺寸数据分成每行8个，充分利用A4横向空间
+              const sizeNames = Object.keys(measurements);
+              const rowSize = 8; // 每行8个尺寸
+              
+              for (let i = 0; i < sizeNames.length; i += rowSize) {
+                const rowNames = sizeNames.slice(i, i + rowSize);
+                const rowValues = rowNames.map(name => measurements[name] + ' cm');
+                
+                // 填充空位
+                while (rowNames.length < rowSize) {
+                  rowNames.push('');
+                  rowValues.push('');
+                }
+                
+                // 名称和数值行
+                printData.push([...rowNames]);
+                printData.push([...rowValues]);
+              }
+            }
+          });
+        }
+        
+        // 高级定制西服选项
+        if (person.categories && person.categories.includes('advancedSuit')) {
+          const customOptions = person.customOptions?.['advancedSuit'] || {};
+          if (Object.keys(customOptions).length > 0) {
+            printData.push(['【高级定制选项】']);
+            
+            // 将定制选项分成每行4个
+            const optionKeys = Object.keys(customOptions);
+            const rowSize = 4;
+            
+            for (let i = 0; i < optionKeys.length; i += rowSize) {
+              const rowKeys = optionKeys.slice(i, i + rowSize);
+              const rowLabels = rowKeys.map(key => advancedSuitOptions[key]?.label || key);
+              const rowValues = rowKeys.map(key => customOptions[key] || '');
+              
+              // 填充空位
+              while (rowLabels.length < rowSize) {
+                rowLabels.push('');
+                rowValues.push('');
+              }
+              
+              printData.push([...rowLabels]);
+              printData.push([...rowValues]);
+            }
+          }
+        }
+        
+        // 添加签名栏
+        printData.push(['【确认签字】']);
+        printData.push(['量体师签字：', '', '', '', '客户签字：', '', '', '']);
+        printData.push(['日期：', '', '', '', '日期：', '', '', '']);
+        
+        const wsPrint = XLSX.utils.aoa_to_sheet(printData);
+        
+        // 设置列宽（A4横向，8列布局，自适应铺满A4纸）
+        // A4横向有效宽度约284mm，8列每列约35.5mm
+        wsPrint['!cols'] = [
+          { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }
+        ];
+        
+        // 设置行高 - 自适应
+        wsPrint['!rows'] = printData.map((row, index) => {
+          if (index === 0) return { hpt: 26 }; // 标题行
+          if (row.length === 1 && row[0] && row[0].startsWith('【')) return { hpt: 20 }; // 区块标题
+          // 签字栏行增加高度
+          if (row[0] && (row[0].includes('签字') || row[0].includes('日期'))) return { hpt: 28 };
+          return { hpt: 16 }; // 普通行，更紧凑
+        });
+        
+        // 合并单元格设置 - 动态计算
+        const merges = [
+          // 标题合并（8列）
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }
+        ];
+        
+        // 动态添加区块标题合并
+        for (let i = 1; i < printData.length; i++) {
+          const row = printData[i];
+          if (row.length === 1 && row[0] && row[0].startsWith('【')) {
+            merges.push({ s: { r: i, c: 0 }, e: { r: i, c: 7 } });
+          }
+        }
+        
+        // 合并定制品类行（第5行，索引4）
+        merges.push({ s: { r: 4, c: 1 }, e: { r: 4, c: 7 } });
+        // 合并创建时间行（第6行，索引5）
+        merges.push({ s: { r: 5, c: 1 }, e: { r: 5, c: 2 } });
+        merges.push({ s: { r: 5, c: 3 }, e: { r: 5, c: 7 } });
+        
+        // 找到签字栏位置并合并
+        const signTitleRow = printData.findIndex(row => row[0] === '【确认签字】');
+        if (signTitleRow > 0) {
+          // 量体师签字行：合并第2-4列作为签字区域
+          merges.push({ s: { r: signTitleRow + 1, c: 1 }, e: { r: signTitleRow + 1, c: 3 } });
+          // 客户签字行：合并第6-8列作为签字区域
+          merges.push({ s: { r: signTitleRow + 1, c: 5 }, e: { r: signTitleRow + 1, c: 7 } });
+          // 日期行：量体师日期合并第2-4列
+          merges.push({ s: { r: signTitleRow + 2, c: 1 }, e: { r: signTitleRow + 2, c: 3 } });
+          // 日期行：客户日期合并第6-8列
+          merges.push({ s: { r: signTitleRow + 2, c: 5 }, e: { r: signTitleRow + 2, c: 7 } });
+        }
+        
+        wsPrint['!merges'] = merges;
+        
+        // 应用打印设置 - 直接赋值确保生效
+        wsPrint['!pageSetup'] = printSettings['!pageSetup'];
+        wsPrint['!margins'] = printSettings['!margins'];
+        
+        // 添加边框和样式
+        const printRange = XLSX.utils.decode_range(wsPrint['!ref']);
+        for (let R = printRange.s.r; R <= printRange.e.r; ++R) {
+          for (let C = printRange.s.c; C <= printRange.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            if (!wsPrint[cellAddress]) {
+              wsPrint[cellAddress] = { v: '' };
+            }
+            if (!wsPrint[cellAddress].s) wsPrint[cellAddress].s = {};
+            
+            // 默认对齐方式
+            wsPrint[cellAddress].s.alignment = { 
+              horizontal: 'center', 
+              vertical: 'center',
+              wrapText: false 
+            };
+            
+            // 签字栏标签左对齐
+            if (printData[R] && printData[R][C] && typeof printData[R][C] === 'string' && 
+                (printData[R][C].includes('签字') || printData[R][C].includes('日期'))) {
+              wsPrint[cellAddress].s.alignment = { horizontal: 'left', vertical: 'center' };
+            }
+            
+            // 边框样式
+            wsPrint[cellAddress].s.border = {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            };
+            
+            // 标题行样式（一级标题）
+            if (R === 0) {
+              wsPrint[cellAddress].s.font = { bold: true, sz: 16, name: '微软雅黑' };
+              wsPrint[cellAddress].s.fill = { fgColor: { rgb: 'E8F4FD' }, patternType: 'solid' };
+            }
+            // 区块标题样式（二级标题）
+            else if (wsPrint[cellAddress].v && typeof wsPrint[cellAddress].v === 'string' && wsPrint[cellAddress].v.startsWith('【')) {
+              wsPrint[cellAddress].s.font = { bold: true, sz: 12, name: '微软雅黑' };
+              wsPrint[cellAddress].s.fill = { fgColor: { rgb: 'F3F4F6' }, patternType: 'solid' };
+              wsPrint[cellAddress].s.alignment = { horizontal: 'left', vertical: 'center' };
+            }
+            // 尺寸名称行样式（三级标题/标签）
+            else if (printData[R] && printData[R][C] && typeof printData[R][C] === 'string' && 
+                     !printData[R][C].includes('cm') && printData[R][C] !== '' &&
+                     !printData[R][C].includes('【')) {
+              wsPrint[cellAddress].s.font = { bold: true, sz: 10, name: '微软雅黑' };
+              wsPrint[cellAddress].s.fill = { fgColor: { rgb: 'FAFAFA' }, patternType: 'solid' };
+            }
+            // 普通内容样式
+            else {
+              wsPrint[cellAddress].s.font = { sz: 10, name: '微软雅黑' };
+            }
+          }
+        }
+        
+        XLSX.utils.book_append_sheet(wb, wsPrint, '打印版(A4)');
+        
+        // ========== 完整数据sheet（横向展示）==========
+        const headers = ['客户ID', '姓名', '性别', '手机号', '身高(cm)', '体重(kg)', '身形', '身形特征', '定制品类', '创建时间', '更新时间'];
+        const values = [
+          person.id,
+          person.name,
+          person.gender === 'male' ? '男' : '女',
+          person.phone || '',
+          person.height || '',
+          person.weight || '',
+          getBodyTypeText(person.bodyType, person.gender),
+          person.bodyFeatures ? person.bodyFeatures.join('、') : '',
+          person.categories ? person.categories.map(c => getCategoryName(c)).join('、') : '',
+          new Date(person.createdAt).toLocaleString('zh-CN'),
+          new Date(person.updatedAt).toLocaleString('zh-CN')
+        ];
+        
+        if (person.categories && person.categories.length > 0) {
+          person.categories.forEach(category => {
+            const categoryName = getCategoryName(category);
+            const measurements = person.measurements[category] || {};
+            
+            Object.keys(measurements).forEach(sizeName => {
+              headers.push(`${categoryName}-${sizeName}`);
+              values.push(measurements[sizeName]);
+            });
+          });
+        }
+        
+        const fullData = [headers, values];
+        const wsFull = XLSX.utils.aoa_to_sheet(fullData);
+        wsFull['!cols'] = headers.map(() => ({ wch: 15 }));
+        
+        // 完整数据sheet打印设置
+        wsFull['!pageSetup'] = {
+          paperSize: 9,
+          orientation: 'landscape',
+          fitToPage: true,
+          fitToWidth: 1,
+          fitToHeight: 0,
+          horizontalCentered: true
+        };
+        wsFull['!margins'] = {
+          left: 0.25, right: 0.25, top: 0.25, bottom: 0.25, header: 0.2, footer: 0.2
+        };
+        
+        const range = XLSX.utils.decode_range(wsFull['!ref']);
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+          if (!wsFull[cellAddress]) wsFull[cellAddress] = {};
+          if (!wsFull[cellAddress].s) wsFull[cellAddress].s = {};
+          wsFull[cellAddress].s.font = { bold: true };
+          wsFull[cellAddress].s.border = {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } }
+          };
+        }
+        
+        XLSX.utils.book_append_sheet(wb, wsFull, '完整数据');
+        
+        // ========== 各品类单独sheet ==========
+        if (person.categories && person.categories.length > 0) {
+          person.categories.forEach(category => {
+            const categoryName = getCategoryName(category);
+            const measurements = person.measurements[category] || {};
+            
+            if (Object.keys(measurements).length > 0) {
+              const sizeHeaders = Object.keys(measurements);
+              const sizeValues = sizeHeaders.map(name => measurements[name]);
+              
+              const sizeData = [sizeHeaders, sizeValues];
+              const wsSize = XLSX.utils.aoa_to_sheet(sizeData);
+              wsSize['!cols'] = sizeHeaders.map(() => ({ wch: 12 }));
+              
+              // 各品类sheet打印设置
+              wsSize['!pageSetup'] = {
+                paperSize: 9,
+                orientation: 'landscape',
+                fitToPage: true,
+                fitToWidth: 1,
+                fitToHeight: 0,
+                horizontalCentered: true
+              };
+              wsSize['!margins'] = {
+                left: 0.25, right: 0.25, top: 0.25, bottom: 0.25, header: 0.2, footer: 0.2
+              };
+              
+              const sizeRange = XLSX.utils.decode_range(wsSize['!ref']);
+              for (let C = sizeRange.s.c; C <= sizeRange.e.c; ++C) {
+                const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+                if (!wsSize[cellAddress]) wsSize[cellAddress] = {};
+                if (!wsSize[cellAddress].s) wsSize[cellAddress].s = {};
+                wsSize[cellAddress].s.font = { bold: true };
+                wsSize[cellAddress].s.border = {
+                  top: { style: 'thin', color: { rgb: '000000' } },
+                  bottom: { style: 'thin', color: { rgb: '000000' } },
+                  left: { style: 'thin', color: { rgb: '000000' } },
+                  right: { style: 'thin', color: { rgb: '000000' } }
+                };
+              }
+              
+              const sheetName = categoryName.length > 28 ? categoryName.substring(0, 28) : categoryName;
+              XLSX.utils.book_append_sheet(wb, wsSize, sheetName);
+            }
+          });
+        }
+        
+        // 导出文件
+        XLSX.writeFile(wb, `${person.name}_量体数据.xlsx`);
+        
+        // 设置已导出状态
+        person.exportedAt = new Date().toISOString();
+        savePersonToStorage(person);
+        
+        // 更新列表显示
+        renderPersonList();
+        
+        showNotification('Excel导出成功', 'success');
+      } catch (error) {
+        console.error('Excel导出失败:', error);
+        alert('Excel导出失败，请稍后重试');
+      }
+    }
+
+    // 批量导入
+    // 保存设置
+    function saveSettings() {
+      const shopName = document.getElementById('shop-name');
+      const contactPerson = document.getElementById('contact-person');
+      const contactPhone = document.getElementById('contact-phone');
+      const shopAddress = document.getElementById('shop-address');
+      
+      if (!shopName || !contactPerson || !contactPhone || !shopAddress) return;
+      
+      const settings = {
+        shopName: shopName.value.trim(),
+        contactPerson: contactPerson.value.trim(),
+        contactPhone: contactPhone.value.trim(),
+        shopAddress: shopAddress.value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('yidingtong_settings', JSON.stringify(settings));
+      showNotification('设置保存成功', 'success');
+    }
+
+    // 备份数据
+    function backupData() {
+      const data = {
+        persons: getAllPersons(),
+        history: getAllHistory(),
+        exportedAt: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `yidingtong_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showNotification('数据备份成功', 'success');
+    }
+
+    // 恢复数据
+    function restoreData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              const data = JSON.parse(e.target.result);
+              
+              if (confirm('确定要恢复数据吗？当前数据将被覆盖。')) {
+                if (data.persons) {
+                  localStorage.setItem('yidingtong_persons', JSON.stringify(data.persons));
+                }
+                if (data.history) {
+                  localStorage.setItem('yidingtong_history', JSON.stringify(data.history));
+                }
+                
+                // 重新加载数据
+                updateStatistics();
+                renderPersonList();
+                updateCharts();
+                
+                showNotification('数据恢复成功', 'success');
+              }
+            } catch (error) {
+              alert('备份文件格式错误');
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+
+    // 清除所有数据
+    function clearAllData() {
+      if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
+        if (confirm('再次确认：所有量体记录将被永久删除！')) {
+          localStorage.removeItem('yidingtong_persons');
+          localStorage.removeItem('yidingtong_history');
+          
+          // 重新加载数据
+          updateStatistics();
+          renderPersonList();
+          updateCharts();
+          
+          showNotification('所有数据已清除', 'success');
+        }
+      }
+    }
+
+    // 本地存储操作
+    function savePersonToStorage(person) {
+      let persons = getAllPersons();
+      const existingIndex = persons.findIndex(p => p.id === person.id);
+      
+      if (existingIndex >= 0) {
+        persons[existingIndex] = person;
+      } else {
+        persons.push(person);
+      }
+      
+      try {
+        localStorage.setItem('yidingtong_persons', JSON.stringify(persons));
+      } catch (error) {
+        console.error('保存人员数据时出错:', error);
+      }
+    }
+
+    function deletePersonFromStorage(id) {
+      let persons = getAllPersons();
+      persons = persons.filter(p => p.id !== id);
+      localStorage.setItem('yidingtong_persons', JSON.stringify(persons));
+    }
+
+    function getAllPersons() {
+      try {
+        const data = localStorage.getItem('yidingtong_persons');
+        return JSON.parse(data || '[]');
+      } catch (error) {
+        console.error('读取人员数据时出错:', error);
+        return [];
+      }
+    }
+
+    function getPersonById(id) {
+      return getAllPersons().find(p => p.id === id);
+    }
+
+    function addToHistory(person) {
+      let history = getAllHistory();
+      const existing = history.find(h => h.id === person.id);
+      
+      if (existing) {
+        existing.records.push({
+          date: new Date().toISOString(),
+          bodyType: person.bodyType,
+          height: person.height,
+          weight: person.weight,
+          categories: person.categories,
+          measurements: person.measurements,
+          customOptions: person.customOptions,
+          preferences: person.preferences
+        });
+      } else {
+        history.push({
+          id: person.id,
+          name: person.name,
+          gender: person.gender,
+          phone: person.phone,
+          records: [{
+            date: new Date().toISOString(),
+            bodyType: person.bodyType,
+            height: person.height,
+            weight: person.weight,
+            categories: person.categories,
+            measurements: person.measurements,
+            customOptions: person.customOptions,
+            preferences: person.preferences
+          }]
+        });
+      }
+      
+      localStorage.setItem('yidingtong_history', JSON.stringify(history));
+    }
+
+    function getAllHistory() {
+      return JSON.parse(localStorage.getItem('yidingtong_history') || '[]');
+    }
+
+    function getHistoryById(id) {
+      const history = getAllHistory();
+      return history.find(h => h.id === id);
+    }
+
+    function deleteHistoryFromStorage(id) {
+      let history = getAllHistory();
+      history = history.filter(h => h.id !== id);
+      localStorage.setItem('yidingtong_history', JSON.stringify(history));
+    }
+
+    // 工具函数
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      return `${month}/${day}`;
+    }
+
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+      }`;
+      
+      notification.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fa ${
+            type === 'success' ? 'fa-check-circle' :
+            type === 'error' ? 'fa-exclamation-circle' :
+            'fa-info-circle'
+          }"></i>
+          <span>${message}</span>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // 显示动画
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+      }, 100);
+      
+      // 自动隐藏
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+
+    // 初始化演示数据（已清空）
+    function clearTestDataOnInit() {
+      try {
+        let persons = JSON.parse(localStorage.getItem('yidingtong_persons') || '[]');
+        let history = JSON.parse(localStorage.getItem('yidingtong_history') || '[]');
+        
+        const originalPersonsCount = persons.length;
+        const originalHistoryCount = history.length;
+        
+        persons = persons.filter(p => p.name !== '李四' && p.name !== '张三');
+        history = history.filter(h => h.name !== '李四' && h.name !== '张三');
+        
+        if (originalPersonsCount !== persons.length || originalHistoryCount !== history.length) {
+          localStorage.setItem('yidingtong_persons', JSON.stringify(persons));
+          localStorage.setItem('yidingtong_history', JSON.stringify(history));
+          console.log('已清除测试数据');
+        }
+      } catch (error) {
+        console.error('清除测试数据时出错:', error);
+      }
+    }
+
+    function initializeDemoData() {
+      // 演示数据已清空，不再添加默认的张三和李四数据
+    }
+  </script>
+</body>
+</html>
